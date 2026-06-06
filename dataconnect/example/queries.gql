@@ -1,0 +1,42 @@
+mutation CreateGigSlot($venueId: UUID!, $startTime: Timestamp!, $endTime: Timestamp!, $offeredFee: Float) @auth(level: USER) {
+  gigSlot_insert(data: {
+    venueId: $venueId,
+    startTime: $startTime,
+    endTime: $endTime,
+    status: "Available",
+    offeredFee: $offeredFee
+  })
+}
+
+mutation BookGig($gigSlotId: UUID!, $musicianId: UUID!, $notes: String) @auth(level: USER) {
+  booking_insert(data: {
+    gigSlotId: $gigSlotId,
+    musicianId: $musicianId,
+    status: "Pending",
+    notes: $notes
+  })
+}
+
+query ListAvailableGigs($minFee: Float) @auth(level: PUBLIC) {
+  gigSlots(where: {
+    status: {eq: "Available"},
+    offeredFee: {ge: $minFee}
+  }) {
+    id
+    startTime
+    endTime
+    venue {
+      name
+      address
+    }
+  }
+}
+
+mutation AddReview($bookingId: UUID!, $rating: Int!, $comment: String!) @auth(level: USER) {
+  review_insert(data: {
+    bookingId: $bookingId,
+    rating: $rating,
+    comment: $comment,
+    createdAt_expr: "request.time"
+  })
+}

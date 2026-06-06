@@ -1,0 +1,38 @@
+type Venue @table {
+  name: String!
+  address: String!
+  contactEmail: String!
+  capacity: Int
+  amenities: String
+}
+
+type Musician @table {
+  name: String!
+  genre: String!
+  baseFee: Float!
+  bio: String
+  portfolioUrl: String
+  socialMediaLink: String
+}
+
+type GigSlot @table {
+  venue: Venue!
+  startTime: Timestamp!
+  endTime: Timestamp!
+  status: String! # Available, Booked, Completed
+  offeredFee: Float
+}
+
+type Booking @table {
+  gigSlot: GigSlot!
+  musician: Musician!
+  status: String! # Pending, Confirmed, Cancelled
+  notes: String
+}
+
+type Review @table {
+  booking: Booking!
+  rating: Int!
+  comment: String!
+  createdAt: Timestamp
+}
