@@ -1,9 +1,9 @@
 const variants = {
-  default: 'bg-stone-100 text-stone-700 dark:bg-stone-800 dark:text-stone-300',
-  primary: 'bg-primary-100 text-primary-700 dark:bg-primary-900/50 dark:text-primary-300',
-  success: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/50 dark:text-emerald-300',
-  danger: 'bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300',
-  warning: 'bg-amber-100 text-amber-700 dark:bg-amber-900/50 dark:text-amber-300',
+  default: 'bg-neutral-100 text-neutral-700 dark:bg-neutral-800 dark:text-neutral-300',
+  primary: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200',
+  success: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200',
+  danger: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200',
+  warning: 'bg-neutral-200 text-neutral-800 dark:bg-neutral-700 dark:text-neutral-200',
 }
 
 const sizes = {
@@ -29,13 +29,7 @@ function Badge({
       `}
     >
       {dot && (
-        <span className={`w-1.5 h-1.5 rounded-full ${
-          variant === 'success' ? 'bg-emerald-500' :
-          variant === 'danger' ? 'bg-rose-500' :
-          variant === 'warning' ? 'bg-amber-500' :
-          variant === 'primary' ? 'bg-primary-500' :
-          'bg-stone-400'
-        }`} />
+        <span className="w-1.5 h-1.5 rounded-full bg-neutral-500" />
       )}
       {children}
     </span>

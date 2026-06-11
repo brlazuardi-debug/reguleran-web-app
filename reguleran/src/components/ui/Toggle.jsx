@@ -1,36 +1,18 @@
-function Toggle({ checked, onChange, label, id }) {
-  const toggleId = id || label?.toLowerCase().replace(/\s+/g, '-')
-
+function Toggle({ checked, onChange, label, disabled = false, className = '' }) {
   return (
-    <label htmlFor={toggleId} className="inline-flex items-center gap-3 cursor-pointer group">
+    <label className={`inline-flex items-center gap-2 cursor-pointer ${disabled ? 'opacity-50' : ''} ${className}`}>
       <div className="relative">
         <input
-          id={toggleId}
           type="checkbox"
           checked={checked}
-          onChange={e => onChange?.(e.target.checked)}
+          onChange={onChange}
+          disabled={disabled}
           className="sr-only peer"
         />
-        <div className={`
-          w-10 h-6 rounded-full transition-all duration-200
-          ${checked
-            ? 'bg-primary-600 dark:bg-primary-500'
-            : 'bg-stone-300 dark:bg-stone-700'
-          }
-          peer-focus-visible:ring-2 peer-focus-visible:ring-primary-500/30
-        `}>
-          <div className={`
-            w-4 h-4 bg-white rounded-full shadow-sm transition-all duration-200
-            absolute top-1 left-1
-            ${checked ? 'translate-x-4' : ''}
-          `} />
-        </div>
+        <div className="w-10 h-6 rounded-full bg-neutral-300 dark:bg-neutral-700 peer-checked:bg-neutral-800 dark:peer-checked:bg-neutral-200 transition-colors duration-200" />
+        <div className="absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow peer-checked:translate-x-4 transition-transform duration-200" />
       </div>
-      {label && (
-        <span className="text-sm text-stone-700 dark:text-stone-300 group-hover:text-stone-900 dark:group-hover:text-stone-100 transition-colors">
-          {label}
-        </span>
-      )}
+      {label && <span className="text-sm text-neutral-600 dark:text-neutral-400">{label}</span>}
     </label>
   )
 }

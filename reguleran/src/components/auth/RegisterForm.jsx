@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, Guitar } from 'lucide-react'
+import { Mail, Lock, Music, ArrowRight } from 'lucide-react'
 import useAuthStore from '../../stores/authStore'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -29,7 +29,7 @@ export default function RegisterForm() {
     setSubmitting(true)
     try {
       await register(email, password)
-      navigate('/')
+      navigate('/app')
     } catch {
       // error handled by store
     } finally {
@@ -40,21 +40,28 @@ export default function RegisterForm() {
   const displayError = localError || error
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm animate-fade-in">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#0a0a0a]">
+      <div className="fixed inset-0 pointer-events-none">
+        <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-neutral-500/5 blur-[100px] dark:bg-neutral-500/10" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-neutral-500/5 blur-[80px] dark:bg-neutral-500/8" />
+      </div>
+
+      <div className="relative w-full max-w-sm animate-fade-in-up">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-primary-50 dark:bg-primary-900/30 mb-4">
-            <Guitar size={28} className="text-primary-600 dark:text-primary-400" strokeWidth={2.5} />
-          </div>
-          <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">Daftar</h1>
-          <p className="text-sm text-stone-500 dark:text-stone-400 mt-1">
+          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg">
+              <Music size={24} className="text-white dark:text-neutral-900" strokeWidth={2.5} />
+            </div>
+          </Link>
+          <h1 className="text-2xl font-display text-neutral-900 dark:text-white">Daftar</h1>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">
             Buat akun baru Reguleran
           </p>
         </div>
 
-        <Card className="space-y-5">
+        <Card variant="glass" className="space-y-5">
           {displayError && (
-            <div className="bg-rose-50 dark:bg-rose-900/30 text-rose-700 dark:text-rose-300 px-4 py-3 rounded-xl text-sm">
+            <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
               {displayError}
             </div>
           )}
@@ -87,18 +94,34 @@ export default function RegisterForm() {
               required
               placeholder="Ulangi password"
             />
-            <Button type="submit" fullWidth loading={submitting}>
-              Daftar
+            <Button type="submit" fullWidth loading={submitting} variant="gradient">
+              Daftar Gratis
             </Button>
           </form>
 
-          <p className="text-center text-sm text-stone-500 dark:text-stone-400">
-            Sudah punya akun?{' '}
-            <Link to="/login" className="text-primary-600 dark:text-primary-400 font-medium hover:underline">
-              Masuk
-            </Link>
-          </p>
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-neutral-200 dark:border-neutral-700" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-white dark:bg-neutral-900 px-2 text-neutral-400 dark:text-neutral-500">atau</span>
+            </div>
+          </div>
+
+          <Link
+            to="/login"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200"
+          >
+            <span>Sudah punya akun? Masuk</span>
+            <ArrowRight size={14} />
+          </Link>
         </Card>
+
+        <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
+          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+            Kembali ke beranda
+          </Link>
+        </p>
       </div>
     </div>
   )

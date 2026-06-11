@@ -50,7 +50,7 @@ export default function SetlistDetail() {
     try {
       await deleteSetlist(id)
       toast({ type: 'success', message: 'Setlist dihapus' })
-      navigate('/setlists')
+      navigate('/app/setlists')
     } catch (err) {
       toast({ type: 'error', message: 'Gagal: ' + err.message })
       setDeleting(false)
@@ -81,17 +81,17 @@ export default function SetlistDetail() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <button
-          onClick={() => navigate('/setlists')}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors mb-3"
+          onClick={() => navigate('/app/setlists')}
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors mb-3"
         >
           <ArrowLeft size={16} />
           Kembali
         </button>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{setlist.name}</h1>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{setlist.name}</h1>
             {setlist.description && (
-              <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">{setlist.description}</p>
+              <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">{setlist.description}</p>
             )}
             <Badge variant="default" size="sm" className="mt-2">{sortedSongs.length} lagu</Badge>
           </div>
@@ -108,10 +108,10 @@ export default function SetlistDetail() {
 
       {editing ? (
         <Card>
-          <h2 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Edit Setlist</h2>
+          <h2 className="font-semibold text-neutral-900 dark:text-white mb-4">Edit Setlist</h2>
           <SetlistForm initial={setlist} onSubmit={handleEdit} onCancel={() => setEditing(false)} submitting={submitting} />
-          <div className="mt-6 pt-6 border-t border-stone-200 dark:border-stone-800">
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-3">Atur Lagu</h3>
+          <div className="mt-6 pt-6 border-t border-neutral-200 dark:border-neutral-800">
+            <h3 className="font-semibold text-neutral-900 dark:text-white mb-3">Atur Lagu</h3>
             <SongPicker
               songs={songs}
               selected={setlist.songs || []}
@@ -123,7 +123,7 @@ export default function SetlistDetail() {
       ) : (
         <>
           <Card>
-            <h2 className="font-semibold text-stone-900 dark:text-stone-100 mb-3">
+            <h2 className="font-semibold text-neutral-900 dark:text-white mb-3">
               Daftar Lagu ({sortedSongs.length})
             </h2>
             {sortedSongs.length === 0 ? (
@@ -137,23 +137,23 @@ export default function SetlistDetail() {
                 {sortedSongs.map((item, idx) => (
                   <div
                     key={item.songId}
-                    className="flex items-center justify-between p-3 rounded-xl hover:bg-stone-50 dark:hover:bg-stone-800/50 transition-colors"
+                    className="flex items-center justify-between p-3 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800/50 transition-colors"
                   >
                     <div className="flex items-center gap-3 min-w-0">
-                      <span className="text-sm text-stone-400 dark:text-stone-500 w-6 shrink-0">{idx + 1}.</span>
+                      <span className="text-sm text-neutral-400 dark:text-neutral-500 w-6 shrink-0">{idx + 1}.</span>
                       <div className="min-w-0">
                         {item.song ? (
                           <Link
-                            to={`/songs/${item.songId}`}
-                            className="font-medium text-sm text-stone-900 dark:text-stone-100 hover:text-primary-600 dark:hover:text-primary-400 transition-colors"
+                            to={`/app/songs/${item.songId}`}
+                            className="font-medium text-sm text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-neutral-400 transition-colors"
                           >
                             {item.song.title}
                           </Link>
                         ) : (
-                          <span className="text-sm text-stone-400">(lagu tidak ditemukan)</span>
+                          <span className="text-sm text-neutral-400">(lagu tidak ditemukan)</span>
                         )}
                         {item.song?.artist && (
-                          <span className="text-xs text-stone-400 ml-2">{item.song.artist}</span>
+                          <span className="text-xs text-neutral-400 ml-2">{item.song.artist}</span>
                         )}
                       </div>
                     </div>
@@ -169,7 +169,7 @@ export default function SetlistDetail() {
           </Card>
 
           <Card>
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-3">
+            <h3 className="font-semibold text-neutral-900 dark:text-white mb-3">
               Tambah Lagu ke Setlist
             </h3>
             <SongPicker

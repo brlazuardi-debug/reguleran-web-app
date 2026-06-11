@@ -1,32 +1,97 @@
-/**
- * Import function triggers from their respective submodules:
- *
- * import {onCall} from "firebase-functions/v2/https";
- * import {onDocumentWritten} from "firebase-functions/v2/firestore";
- *
- * See a full list of supported triggers at https://firebase.google.com/docs/functions
- */
-
 import {setGlobalOptions} from "firebase-functions";
-import {onRequest} from "firebase-functions/https";
+import {onDocumentWritten} from "firebase-functions/v2/firestore";
+import {onSchedule} from "firebase-functions/v2/scheduler";
 import * as logger from "firebase-functions/logger";
+import * as admin from "firebase-admin";
 
-// Start writing functions
-// https://firebase.google.com/docs/functions/typescript
+admin.initializeApp();
+const db = admin.firestore();
 
-// For cost control, you can set the maximum number of containers that can be
-// running at the same time. This helps mitigate the impact of unexpected
-// traffic spikes by instead downgrading performance. This limit is a
-// per-function limit. You can override the limit for each function using the
-// `maxInstances` option in the function's options, e.g.
-// `onRequest({ maxInstances: 5 }, (req, res) => { ... })`.
-// NOTE: setGlobalOptions does not apply to functions using the v1 API. V1
-// functions should each use functions.runWith({ maxInstances: 10 }) instead.
-// In the v1 API, each function can only serve one request per container, so
-// this will be the maximum concurrent request count.
-setGlobalOptions({ maxInstances: 10 });
+setGlobalOptions({maxInstances: 10});
 
-// export const helloWorld = onRequest((request, response) => {
-//   logger.info("Hello logs!", {structuredData: true});
-//   response.send("Hello from Firebase!");
-// });
+// Sync song to public collection when song is created/updated
+export const syncSongToPublic = onDocumentWritten(
+  "songs/{songId}",
+  async (event) => {
+    const snap = event.data;
+    const songId = event.params.songId;
+
+    if (!snap) {
+      logger.info(`Song ${songId} deleted, removing from public`);
+      const q = await db
+        .collection("publicSongs")
+        .where("originalSongId", "==", songId)
+        .get();
+      q.forEach((doc) => doc.ref.delete());
+      return;
+    }
+
+    const data = snap.after.data();
+    if (!data) return;
+
+    if (data.isPublic === true) {
+      const existing = await db
+        .collection("publicSongs")
+        .where("originalSongId", "==", songId)
+        .get();
+
+      const publicData = {
+        title: data.title || "",
+        artist: data.artist || "",
+        key: data.key || "",
+        bpm: data.bpm || null,
+        lyrics: data.lyrics || "",
+        audioUrl: data.audioUrl || "",
+        audioFileName: data.audioFileName || "",
+        isPublic: true,
+        originalSongId: songId,
+        sharedBy: data.userId || "",
+        sharedByName: data.sharedByName || "",
+        createdAt: data.createdAt || new Date().toISOString(),
+      };
+
+      if (existing.empty) {
+        await db.collection("publicSongs").add(publicData);
+        logger.info(`Song ${songId} synced to public`);
+      } else {
+        await existing.docs[0].ref.update(publicData);
+        logger.info(`Song ${songId} updated in public`);
+      }
+    } else {
+      const q = await db
+        .collection("publicSongs")
+        .where("originalSongId", "==", songId)
+        .get();
+      q.forEach((doc) => doc.ref.delete());
+      logger.info(`Song ${songId} removed from public`);
+    }
+  }
+);
+
+// Weekly cleanup: remove inactive sessions older than 30 days
+export const cleanupSessions = onSchedule(
+  { schedule: "every monday 02:00", timeZone: "Asia/Jakarta" },
+  async () => {
+    const thirtyDaysAgo = new Date();
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+    const snapshot = await db
+      .collection("sessions")
+      .where("active", "==", false)
+      .where("createdAt", "<", thirtyDaysAgo.toISOString())
+      .get();
+
+    let deleted = 0;
+    const batch = db.batch();
+    snapshot.forEach((doc) => {
+      batch.delete(doc.ref);
+      deleted++;
+    });
+
+    if (deleted > 0) {
+      await batch.commit();
+    }
+
+    logger.info(`Cleanup complete: ${deleted} inactive sessions removed`);
+  }
+);

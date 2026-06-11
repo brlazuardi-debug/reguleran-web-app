@@ -48,20 +48,20 @@ function Modal({
       <div className="fixed inset-0 bg-black/40 backdrop-blur-sm dark:bg-black/60" />
       <div
         className={`
-          relative w-full ${sizes[size]} bg-white dark:bg-stone-900
+          relative w-full ${sizes[size]} bg-white dark:bg-neutral-900
           rounded-2xl shadow-2xl animate-scale-in
-          border border-stone-200 dark:border-stone-800
+          border border-neutral-200 dark:border-neutral-800
           max-h-[85vh] flex flex-col
         `}
       >
         {title && (
-          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-stone-100 dark:border-stone-800">
-            <h2 className="text-lg font-semibold text-stone-900 dark:text-stone-100">
+          <div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-neutral-100 dark:border-neutral-800">
+            <h2 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">
               {title}
             </h2>
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-stone-400 hover:text-stone-600 hover:bg-stone-100 dark:hover:text-stone-300 dark:hover:bg-stone-800 transition-colors"
+              className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-800 transition-colors"
             >
               <X size={18} />
             </button>
@@ -71,7 +71,7 @@ function Modal({
           {children}
         </div>
         {footer && (
-          <div className="px-6 py-4 border-t border-stone-100 dark:border-stone-800 flex items-center justify-end gap-3">
+          <div className="px-6 py-4 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-end gap-3">
             {footer}
           </div>
         )}

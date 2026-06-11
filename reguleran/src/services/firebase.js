@@ -1,16 +1,18 @@
 import { initializeApp } from 'firebase/app'
+import { getAnalytics } from 'firebase/analytics'
 import { getAuth } from 'firebase/auth'
 import { getFirestore } from 'firebase/firestore'
 import { getStorage } from 'firebase/storage'
 import { getMessaging } from 'firebase/messaging'
 
 const firebaseConfig = {
-  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  apiKey: "AIzaSyClvEcOiLqMbCSMFzkBKzzmK98zIMVOkC8",
+  authDomain: "reguleran-live-musik-a69f2.firebaseapp.com",
+  projectId: "reguleran-live-musik-a69f2",
+  storageBucket: "reguleran-live-musik-a69f2.firebasestorage.app",
+  messagingSenderId: "752424809589",
+  appId: "1:752424809589:web:9fca421fb5c906b504f43c",
+  measurementId: "G-1G4P445R0Q"
 }
 
 let app = null
@@ -26,6 +28,7 @@ export const isConfigured = () => {
 export const getFirebaseApp = () => {
   if (!app && isConfigured()) {
     app = initializeApp(firebaseConfig)
+    getAnalytics(app)
   }
   return app
 }

@@ -8,24 +8,26 @@ function ConfirmDialog({
   onConfirm,
   title = 'Konfirmasi',
   message = 'Apakah kamu yakin?',
-  confirmText = 'Ya, hapus',
+  confirmText = 'Ya, Hapus',
   cancelText = 'Batal',
   loading = false,
+  variant = 'danger',
 }) {
   return (
-    <Modal open={open} onClose={onClose} size="sm">
-      <div className="text-center py-2">
-        <div className="mx-auto w-12 h-12 rounded-full bg-rose-50 dark:bg-rose-900/30 flex items-center justify-center mb-4">
-          <AlertTriangle size={24} className="text-rose-600 dark:text-rose-400" />
+    <Modal open={open} onClose={onClose} title={title}>
+      <div className="flex flex-col items-center text-center py-4">
+        <div className="w-14 h-14 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
+          <AlertTriangle size={28} className="text-neutral-600 dark:text-neutral-400" />
         </div>
-        <h3 className="text-lg font-semibold text-stone-900 dark:text-stone-100 mb-2">{title}</h3>
-        <p className="text-sm text-stone-500 dark:text-stone-400">{message}</p>
+        <p className="text-sm text-neutral-600 dark:text-neutral-400 max-w-xs">
+          {message}
+        </p>
       </div>
-      <div className="flex gap-3 mt-6">
-        <Button variant="secondary" fullWidth onClick={onClose} disabled={loading}>
+      <div className="flex gap-3 justify-end mt-4">
+        <Button variant="secondary" onClick={onClose} disabled={loading}>
           {cancelText}
         </Button>
-        <Button variant="danger" fullWidth onClick={onConfirm} loading={loading}>
+        <Button variant={variant} onClick={onConfirm} loading={loading}>
           {confirmText}
         </Button>
       </div>

@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit3, Trash2, CalendarCheck, MapPin, Clock, Music } from 'lucide-react'
+import { ArrowLeft, Edit3, Trash2, CalendarCheck, MapPin, Clock, Music, Phone, User, FileText } from 'lucide-react'
 import useSessionStore from '../stores/sessionStore'
 import useSetlistStore from '../stores/setlistStore'
 import SessionForm from '../components/sessions/SessionForm'
-import { LocationCard } from '../components/location/MapPicker'
 import { DAY_NAMES } from '../utils/transpose'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
@@ -51,7 +50,7 @@ export default function SessionDetail() {
     try {
       await deleteSession(id)
       toast({ type: 'success', message: 'Sesi dihapus' })
-      navigate('/sessions')
+      navigate('/app/sessions')
     } catch (err) {
       toast({ type: 'error', message: 'Gagal: ' + err.message })
       setDeleting(false)
@@ -75,20 +74,22 @@ export default function SessionDetail() {
   let daysUntil = dayIndex - today
   if (daysUntil < 0) daysUntil += 7
 
+  const loc = session.location || {}
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
         <button
-          onClick={() => navigate('/sessions')}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors mb-3"
+          onClick={() => navigate('/app/sessions')}
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors mb-3"
         >
           <ArrowLeft size={16} />
           Kembali
         </button>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{session.name}</h1>
-            <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{session.name}</h1>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
               Setiap {session.day}{session.time ? ` | ${session.time}` : ''}
             </p>
             <Badge
@@ -126,52 +127,52 @@ export default function SessionDetail() {
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <Card>
-            <h3 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Detail Sesi</h3>
+            <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">Detail Sesi</h3>
             <div className="space-y-3">
               <div className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
-                  <CalendarCheck size={16} className="text-primary-600 dark:text-primary-400" />
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <CalendarCheck size={16} className="text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <div>
-                  <p className="text-stone-500 dark:text-stone-400 text-xs">Hari</p>
-                  <p className="font-medium text-stone-900 dark:text-stone-100">{session.day}</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-xs">Hari</p>
+                  <p className="font-medium text-neutral-900 dark:text-white">{session.day}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
-                  <Clock size={16} className="text-primary-600 dark:text-primary-400" />
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <Clock size={16} className="text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <div>
-                  <p className="text-stone-500 dark:text-stone-400 text-xs">Jam</p>
-                  <p className="font-medium text-stone-900 dark:text-stone-100">{session.time || '—'}</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-xs">Jam</p>
+                  <p className="font-medium text-neutral-900 dark:text-white">{session.time || '—'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
-                  <Music size={16} className="text-primary-600 dark:text-primary-400" />
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <Music size={16} className="text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <div>
-                  <p className="text-stone-500 dark:text-stone-400 text-xs">Setlist</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-xs">Setlist</p>
                   <p className="font-medium">
                     {associatedSetlist ? (
                       <button
-                        onClick={() => navigate(`/setlists/${associatedSetlist.id}`)}
-                        className="text-primary-600 dark:text-primary-400 hover:underline"
+                        onClick={() => navigate(`/app/setlists/${associatedSetlist.id}`)}
+                        className="text-neutral-600 dark:text-neutral-400 hover:underline"
                       >
                         {associatedSetlist.name}
                       </button>
                     ) : (
-                      <span className="text-stone-400">—</span>
+                      <span className="text-neutral-400">—</span>
                     )}
                   </p>
                 </div>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <div className="w-8 h-8 rounded-lg bg-primary-50 dark:bg-primary-900/30 flex items-center justify-center">
-                  <MapPin size={16} className="text-primary-600 dark:text-primary-400" />
+                <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <MapPin size={16} className="text-neutral-600 dark:text-neutral-400" />
                 </div>
                 <div>
-                  <p className="text-stone-500 dark:text-stone-400 text-xs">Status</p>
+                  <p className="text-neutral-500 dark:text-neutral-400 text-xs">Status</p>
                   <Toggle
                     checked={session.active !== false}
                     onChange={toggleActive}
@@ -182,7 +183,61 @@ export default function SessionDetail() {
             </div>
           </Card>
 
-          <LocationCard location={session.location} />
+          <Card>
+            <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">Lokasi & Kontak</h3>
+            <div className="space-y-3">
+              {loc.venue && (
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <MapPin size={16} className="text-neutral-600 dark:text-neutral-400" />
+                  </div>
+                  <div>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-xs">Tempat</p>
+                    <p className="font-medium text-neutral-900 dark:text-white">{loc.venue}</p>
+                    {loc.address && <p className="text-xs text-neutral-400">{loc.address}</p>}
+                  </div>
+                </div>
+              )}
+              {loc.contactPerson && (
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <User size={16} className="text-neutral-600 dark:text-neutral-400" />
+                  </div>
+                  <div>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-xs">Kontak Person</p>
+                    <p className="font-medium text-neutral-900 dark:text-white">{loc.contactPerson}</p>
+                  </div>
+                </div>
+              )}
+              {loc.phone && (
+                <div className="flex items-center gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                    <Phone size={16} className="text-neutral-600 dark:text-neutral-400" />
+                  </div>
+                  <div>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-xs">Telepon</p>
+                    <a href={`tel:${loc.phone}`} className="font-medium text-neutral-600 dark:text-neutral-400 hover:underline">
+                      {loc.phone}
+                    </a>
+                  </div>
+                </div>
+              )}
+              {loc.locationNotes && (
+                <div className="flex items-start gap-3 text-sm">
+                  <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center shrink-0 mt-0.5">
+                    <FileText size={16} className="text-neutral-600 dark:text-neutral-400" />
+                  </div>
+                  <div>
+                    <p className="text-neutral-500 dark:text-neutral-400 text-xs">Catatan</p>
+                    <p className="font-medium text-neutral-900 dark:text-white whitespace-pre-wrap text-sm">{loc.locationNotes}</p>
+                  </div>
+                </div>
+              )}
+              {!loc.venue && !loc.contactPerson && !loc.phone && !loc.locationNotes && (
+                <p className="text-sm text-neutral-400 dark:text-neutral-500 italic">Tidak ada informasi lokasi</p>
+              )}
+            </div>
+          </Card>
         </div>
       )}
 

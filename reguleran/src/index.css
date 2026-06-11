@@ -9,37 +9,73 @@
 @tailwind utilities;
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+
   body {
-    @apply bg-surface-50 text-stone-800 dark:bg-stone-950 dark:text-stone-200 transition-colors duration-200;
+    @apply bg-neutral-50 text-neutral-800 dark:bg-[#0a0a0a] dark:text-neutral-200 transition-colors duration-200;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
   ::selection {
-    @apply bg-primary-200 dark:bg-primary-800;
+    @apply bg-neutral-300/70 dark:bg-neutral-700/70;
   }
 
   *:focus-visible {
-    @apply outline-2 outline-offset-2 outline-primary-500;
+    @apply outline-2 outline-offset-2 outline-neutral-500 outline-dashed;
   }
 }
 
 @layer components {
   .chord {
-    @apply font-bold text-primary-600 dark:text-primary-400 mr-0.5;
+    @apply font-bold text-neutral-800 dark:text-neutral-200 mr-0.5;
   }
 
   .chord-transposed {
-    @apply font-bold text-emerald-600 dark:text-emerald-400 mr-0.5;
+    @apply font-bold text-neutral-500 dark:text-neutral-400 mr-0.5;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-neutral-700 to-neutral-400 dark:from-neutral-300 dark:to-neutral-500;
+  }
+
+  .glass {
+    @apply bg-white/70 dark:bg-white/5 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-800/50;
+  }
+
+  .glass-strong {
+    @apply bg-white/80 dark:bg-neutral-900/80 backdrop-blur-xl border border-neutral-200/50 dark:border-neutral-700/50;
+  }
+
+  .glow {
+    box-shadow: 0 0 20px theme('colors.neutral.500/0.08'), 0 0 40px theme('colors.neutral.500/0.03');
+  }
+
+  .bg-grid {
+    background-image:
+      linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+
+  .bg-grid-light {
+    background-image:
+      linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
   }
 }
 
 @layer utilities {
   .scrollbar-custom {
     scrollbar-width: thin;
-    scrollbar-color: theme('colors.stone.300') transparent;
+    scrollbar-color: theme('colors.neutral.300') transparent;
   }
 
   .dark .scrollbar-custom {
-    scrollbar-color: theme('colors.stone.700') transparent;
+    scrollbar-color: theme('colors.neutral.700') transparent;
   }
 
   .scrollbar-custom::-webkit-scrollbar {
@@ -51,6 +87,26 @@
   }
 
   .scrollbar-custom::-webkit-scrollbar-thumb {
-    @apply bg-stone-300 dark:bg-stone-700 rounded-full;
+    @apply bg-neutral-300 dark:bg-neutral-700 rounded-full;
+  }
+
+  .animate-delay-100 {
+    animation-delay: 100ms;
+  }
+
+  .animate-delay-200 {
+    animation-delay: 200ms;
+  }
+
+  .animate-delay-300 {
+    animation-delay: 300ms;
+  }
+
+  .animate-delay-400 {
+    animation-delay: 400ms;
+  }
+
+  .animate-delay-500 {
+    animation-delay: 500ms;
   }
 }

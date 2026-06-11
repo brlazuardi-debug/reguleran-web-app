@@ -49,7 +49,7 @@ export default function SongDetail() {
     try {
       await deleteSong(id)
       toast({ type: 'success', message: 'Lagu berhasil dihapus' })
-      navigate('/songs')
+      navigate('/app/songs')
     } catch (err) {
       toast({ type: 'error', message: 'Gagal hapus: ' + err.message })
       setDeleting(false)
@@ -66,17 +66,18 @@ export default function SongDetail() {
     <div className="space-y-6 animate-fade-in">
       <div>
         <button
-          onClick={() => navigate('/songs')}
-          className="inline-flex items-center gap-1.5 text-sm text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-200 transition-colors mb-3"
+          onClick={() => navigate('/app/songs')}
+          className="inline-flex items-center gap-1.5 text-sm text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors mb-3"
         >
           <ArrowLeft size={16} />
           Kembali
         </button>
         <div className="flex items-start justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-stone-900 dark:text-stone-100">{song.title}</h1>
-            <p className="text-sm text-stone-500 dark:text-stone-400 mt-0.5">
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">{song.title}</h1>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-0.5">
               {song.artist || '—'} <span className="mx-1.5">•</span> Nada dasar: {song.key || 'N/A'}
+              {song.bpm ? <span className="mx-1.5">•</span> : ''}{song.bpm ? `${song.bpm} BPM` : ''}
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
@@ -102,7 +103,7 @@ export default function SongDetail() {
 
       {editing ? (
         <Card>
-          <h2 className="font-semibold text-stone-900 dark:text-stone-100 mb-4">Edit Lagu</h2>
+          <h2 className="font-semibold text-neutral-900 dark:text-white mb-4">Edit Lagu</h2>
           <SongForm initial={song} onSubmit={handleEdit} onCancel={() => setEditing(false)} submitting={submitting} />
         </Card>
       ) : (

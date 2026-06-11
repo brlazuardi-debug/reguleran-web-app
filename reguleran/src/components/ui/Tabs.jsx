@@ -1,6 +1,6 @@
 function Tabs({ items = [], active, onChange, className = '' }) {
   return (
-    <div className={`flex gap-1 p-1 bg-stone-100 dark:bg-stone-800 rounded-xl ${className}`}>
+    <div className={`flex gap-1 p-1 bg-neutral-100 dark:bg-neutral-800 rounded-xl ${className}`}>
       {items.map(item => {
         const value = typeof item === 'string' ? item : item.value
         const label = typeof item === 'string' ? item : item.label
@@ -15,8 +15,8 @@ function Tabs({ items = [], active, onChange, className = '' }) {
               flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg
               transition-all duration-200
               ${isActive
-                ? 'bg-white dark:bg-stone-900 text-stone-900 dark:text-stone-100 shadow-sm'
-                : 'text-stone-500 dark:text-stone-400 hover:text-stone-700 dark:hover:text-stone-300'
+                ? 'bg-white dark:bg-neutral-900 text-neutral-900 dark:text-neutral-100 shadow-sm'
+                : 'text-neutral-500 dark:text-neutral-400 hover:text-neutral-700 dark:hover:text-neutral-300'
               }
             `}
           >

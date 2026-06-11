@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { MapPin, CalendarCheck } from 'lucide-react'
+import { MapPin, CalendarCheck, User } from 'lucide-react'
 import { Badge } from '../ui/Badge'
 import { DAY_NAMES } from '../../utils/transpose'
 
@@ -13,7 +13,7 @@ export default function SessionCard({ session }) {
 
   return (
     <Link
-      to={`/sessions/${session.id}`}
+      to={`/app/sessions/${session.id}`}
       className="block rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
     >
       <div className="flex items-start gap-3">
@@ -36,6 +36,12 @@ export default function SessionCard({ session }) {
             <p className="text-xs text-stone-400 dark:text-stone-500 mt-2 flex items-center gap-1">
               <MapPin size={12} />
               {session.location.venue}
+            </p>
+          )}
+          {session.location?.contactPerson && (
+            <p className="text-xs text-stone-400 dark:text-stone-500 mt-1 flex items-center gap-1">
+              <User size={12} />
+              {session.location.contactPerson}
             </p>
           )}
         </div>

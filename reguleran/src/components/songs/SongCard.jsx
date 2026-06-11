@@ -7,7 +7,7 @@ export default function SongCard({ song }) {
 
   return (
     <Link
-      to={`/songs/${song.id}`}
+      to={`/app/songs/${song.id}`}
       className="block rounded-xl border border-stone-200 dark:border-stone-800 bg-white dark:bg-stone-900 p-4 hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200"
     >
       <div className="flex items-start gap-3">
@@ -20,7 +20,12 @@ export default function SongCard({ song }) {
               <h3 className="font-semibold text-stone-900 dark:text-stone-100 truncate">{song.title}</h3>
               <p className="text-sm text-stone-500 dark:text-stone-400 truncate">{song.artist || '—'}</p>
             </div>
-            <Badge variant="primary" size="sm">{keyLabel}</Badge>
+            <div className="flex items-center gap-1.5 shrink-0">
+              {song.bpm && (
+                <Badge variant="default" size="sm">{song.bpm} BPM</Badge>
+              )}
+              <Badge variant="primary" size="sm">{keyLabel}</Badge>
+            </div>
           </div>
           {song.lyrics && (
             <p className="text-xs text-stone-400 dark:text-stone-500 mt-2 line-clamp-2">

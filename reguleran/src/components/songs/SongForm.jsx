@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
 import { Textarea } from '../ui/Textarea'
+import { Toggle } from '../ui/Toggle'
 import { Button } from '../ui/Button'
 
 const KEY_OPTIONS = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm']
@@ -10,11 +11,20 @@ export default function SongForm({ initial, onSubmit, onCancel, submitting }) {
   const [title, setTitle] = useState(initial?.title || '')
   const [artist, setArtist] = useState(initial?.artist || '')
   const [key, setKey] = useState(initial?.key || 'C')
+  const [bpm, setBpm] = useState(initial?.bpm || '')
+  const [isPublic, setIsPublic] = useState(initial?.isPublic || false)
   const [lyrics, setLyrics] = useState(initial?.lyrics || '')
 
   const handleSubmit = (e) => {
     e.preventDefault()
-    onSubmit({ title, artist, key, lyrics })
+    onSubmit({
+      title,
+      artist,
+      key,
+      bpm: bpm ? parseInt(bpm, 10) : null,
+      isPublic,
+      lyrics,
+    })
   }
 
   return (
@@ -39,6 +49,26 @@ export default function SongForm({ initial, onSubmit, onCancel, submitting }) {
           onChange={(e) => setKey(e.target.value)}
           options={KEY_OPTIONS}
         />
+        <Input
+          label="BPM (opsional)"
+          type="number"
+          min="1"
+          max="300"
+          value={bpm}
+          onChange={(e) => setBpm(e.target.value)}
+          placeholder="120"
+        />
+      </div>
+
+      <div className="flex items-center gap-3 py-2">
+        <Toggle
+          checked={isPublic}
+          onChange={setIsPublic}
+          label="Bagikan ke publik"
+        />
+        <span className="text-xs text-stone-400 dark:text-stone-500">
+          Izinkan player lain melihat lagu ini
+        </span>
       </div>
 
       <Textarea

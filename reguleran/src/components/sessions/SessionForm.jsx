@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { DAY_NAMES } from '../../utils/transpose'
 import { Input } from '../ui/Input'
 import { Select } from '../ui/Select'
+import { Textarea } from '../ui/Textarea'
 import { Button } from '../ui/Button'
 
 export default function SessionForm({ initial, setlists, onSubmit, onCancel, submitting }) {
@@ -10,8 +11,9 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
   const [time, setTime] = useState(initial?.time || '19:00')
   const [venue, setVenue] = useState(initial?.location?.venue || '')
   const [address, setAddress] = useState(initial?.location?.address || '')
-  const [lat, setLat] = useState(initial?.location?.lat || '')
-  const [lng, setLng] = useState(initial?.location?.lng || '')
+  const [contactPerson, setContactPerson] = useState(initial?.location?.contactPerson || '')
+  const [phone, setPhone] = useState(initial?.location?.phone || '')
+  const [locationNotes, setLocationNotes] = useState(initial?.location?.locationNotes || '')
   const [setlistId, setSetlistId] = useState(initial?.setlistId || '')
 
   const handleSubmit = (e) => {
@@ -23,8 +25,9 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
       location: {
         venue,
         address,
-        lat: lat ? parseFloat(lat) : null,
-        lng: lng ? parseFloat(lng) : null,
+        contactPerson,
+        phone,
+        locationNotes,
       },
       setlistId: setlistId || null,
       active: true,
@@ -83,20 +86,26 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
             placeholder="Jl. Contoh No. 123"
           />
           <Input
-            label="Latitude"
-            type="number"
-            step="any"
-            value={lat}
-            onChange={(e) => setLat(e.target.value)}
-            placeholder="-6.2088"
+            label="Kontak Person"
+            value={contactPerson}
+            onChange={(e) => setContactPerson(e.target.value)}
+            placeholder="Mis: Bang Rudi"
           />
           <Input
-            label="Longitude"
-            type="number"
-            step="any"
-            value={lng}
-            onChange={(e) => setLng(e.target.value)}
-            placeholder="106.8456"
+            label="No. Telepon"
+            type="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="0812-xxxx-xxxx"
+          />
+        </div>
+        <div className="mt-4">
+          <Textarea
+            label="Catatan Lokasi"
+            value={locationNotes}
+            onChange={(e) => setLocationNotes(e.target.value)}
+            placeholder="Parkir di belakang, masuk lebar pintu samping..."
+            rows={3}
           />
         </div>
       </div>

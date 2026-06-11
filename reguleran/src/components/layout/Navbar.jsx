@@ -7,18 +7,22 @@ import {
   ListMusic,
   CalendarCheck,
   CalendarDays,
-  Guitar,
+  SlidersHorizontal,
+  Globe,
   Sun,
   Moon,
   LogOut,
+  Home,
 } from 'lucide-react'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Dashboard' },
-  { to: '/songs', icon: Music, label: 'Lagu' },
-  { to: '/setlists', icon: ListMusic, label: 'Setlist' },
-  { to: '/sessions', icon: CalendarCheck, label: 'Sesi' },
-  { to: '/schedule', icon: CalendarDays, label: 'Jadwal' },
+  { to: '/app', icon: LayoutDashboard, label: 'Dashboard' },
+  { to: '/app/songs', icon: Music, label: 'Lagu' },
+  { to: '/app/setlists', icon: ListMusic, label: 'Setlist' },
+  { to: '/app/sessions', icon: CalendarCheck, label: 'Sesi' },
+  { to: '/app/pitchlist', icon: SlidersHorizontal, label: 'Pitchlist' },
+  { to: '/app/library', icon: Globe, label: 'Library' },
+  { to: '/app/schedule', icon: CalendarDays, label: 'Jadwal' },
 ]
 
 export default function Navbar() {
@@ -27,58 +31,71 @@ export default function Navbar() {
   const { user, logout } = useAuthStore()
 
   const isActive = (to) => {
-    if (to === '/') return pathname === '/'
+    if (to === '/app') return pathname === '/app'
     return pathname.startsWith(to)
   }
 
   return (
     <>
-      {/* Desktop Navbar */}
-      <nav className="hidden md:block bg-white/80 dark:bg-stone-900/80 border-b border-stone-200 dark:border-stone-800 sticky top-0 z-50 backdrop-blur-lg">
+      <nav className="hidden md:block glass-strong sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex items-center justify-between h-16">
-            <Link to="/" className="flex items-center gap-2.5 font-bold text-xl text-primary-600 dark:text-primary-400">
-              <Guitar size={24} strokeWidth={2.5} />
-              Reguleran
-            </Link>
+            <div className="flex items-center gap-6">
+              <Link to="/app" className="flex items-center gap-2.5 shrink-0">
+                <div className="w-8 h-8 rounded-lg bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg">
+                  <Music size={16} className="text-white dark:text-neutral-900" strokeWidth={2.5} />
+                </div>
+                <span className="font-display text-lg tracking-wide text-neutral-900 dark:text-white">
+                  Reguleran
+                </span>
+              </Link>
 
-            <div className="flex items-center gap-1">
-              {navItems.map(item => (
-                <Link
-                  key={item.to}
-                  to={item.to}
-                  className={`
-                    flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
-                    transition-all duration-200
-                    ${isActive(item.to)
-                      ? 'bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300'
-                      : 'text-stone-500 hover:text-stone-800 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:bg-stone-800'
-                    }
-                  `}
-                >
-                  <item.icon size={17} strokeWidth={isActive(item.to) ? 2.5 : 2} />
-                  {item.label}
-                </Link>
-              ))}
+              <div className="flex items-center gap-1">
+                {navItems.map(item => (
+                  <Link
+                    key={item.to}
+                    to={item.to}
+                    className={`
+                      flex items-center gap-2 px-3.5 py-2 rounded-xl text-sm font-medium
+                      transition-all duration-200
+                      ${isActive(item.to)
+                        ? 'bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 shadow-sm'
+                        : 'text-neutral-500 hover:text-neutral-800 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800'
+                      }
+                    `}
+                  >
+                    <item.icon size={17} strokeWidth={isActive(item.to) ? 2.5 : 2} />
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
             </div>
 
             <div className="flex items-center gap-2">
+              <Link
+                to="/"
+                className="p-2 rounded-xl text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:text-neutral-500 dark:hover:text-neutral-300 dark:hover:bg-neutral-800 transition-all duration-200"
+                aria-label="Beranda"
+              >
+                <Home size={18} />
+              </Link>
+
               <button
                 onClick={toggle}
-                className="p-2 rounded-xl text-stone-500 hover:text-stone-700 hover:bg-stone-100 dark:text-stone-400 dark:hover:text-stone-200 dark:hover:bg-stone-800 transition-all duration-200"
+                className="p-2 rounded-xl text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800 transition-all duration-200"
                 aria-label="Toggle dark mode"
               >
                 {theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
               </button>
 
               {user && (
-                <div className="flex items-center gap-3 ml-2">
-                  <span className="text-sm text-stone-500 dark:text-stone-400 hidden lg:block">
+                <div className="flex items-center gap-3 ml-2 pl-3 border-l border-neutral-200 dark:border-neutral-700">
+                  <span className="text-sm text-neutral-500 dark:text-neutral-400 hidden lg:block max-w-[140px] truncate">
                     {user.email}
                   </span>
                   <button
                     onClick={logout}
-                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-stone-500 hover:text-rose-600 hover:bg-rose-50 dark:text-stone-400 dark:hover:text-rose-400 dark:hover:bg-rose-900/20 transition-all duration-200"
+                    className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800 transition-all duration-200"
                   >
                     <LogOut size={16} />
                     <span className="hidden lg:inline">Keluar</span>
@@ -90,9 +107,17 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile Bottom Nav */}
-      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-stone-900/90 border-t border-stone-200 dark:border-stone-800 backdrop-blur-lg safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 inset-x-0 z-50 bg-white/90 dark:bg-[#0a0a0a]/90 border-t border-neutral-200 dark:border-neutral-800 backdrop-blur-lg safe-area-bottom">
         <div className="flex items-center justify-around px-2 py-1">
+          <Link
+            to="/"
+            className={`flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-xs font-medium transition-all duration-200 min-w-0 ${
+              pathname === '/' ? 'text-neutral-900 dark:text-white' : 'text-neutral-400 dark:text-neutral-500'
+            }`}
+          >
+            <Home size={20} strokeWidth={pathname === '/' ? 2.5 : 2} />
+            <span>Beranda</span>
+          </Link>
           {navItems.map(item => (
             <Link
               key={item.to}
@@ -101,8 +126,8 @@ export default function Navbar() {
                 flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-xs font-medium
                 transition-all duration-200 min-w-0
                 ${isActive(item.to)
-                  ? 'text-primary-600 dark:text-primary-400'
-                  : 'text-stone-400 dark:text-stone-500'
+                  ? 'text-neutral-900 dark:text-white'
+                  : 'text-neutral-400 dark:text-neutral-500'
                 }
               `}
             >
@@ -113,7 +138,6 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile spacer to prevent content hiding behind bottom nav */}
       <div className="md:hidden h-16" />
     </>
   )
