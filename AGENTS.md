@@ -1,8 +1,11 @@
 # AGENTS.md — Reguleran
 
+For detailed setup (Firebase config, collection schemas, tech stack), see `reguleran/README.md`.
+
 ## Commands (run from `reguleran/`)
 - `npm run dev` — Vite dev server at localhost:5173
 - `npm run build` — production build via Vite 8 (rolldown)
+- `npm run preview` — preview production build locally
 - `npm run lint` — ESLint
 - `firebase deploy --only hosting` — deploy frontend only (no Blaze required)
 - `firebase deploy` — full deploy (requires Blaze for functions)
@@ -25,3 +28,4 @@
 - VAPID key in `.env` is **currently empty**. Must be obtained from Firebase Console > Cloud Messaging > Web Configuration for FCM.
 - ESLint config is in `eslint.config.js` (flat config, v10).
 - Tailwind uses custom monochrome palette (no brand color).
+- `reguleran/README.md` references a non-existent `.env.example` — edit `.env` directly instead.
