@@ -5,3 +5,7 @@ node_modules/
 dist/
 build/
 .firebase/
+.agents/
+.claude/
+.opencode/
+skills-lock.json

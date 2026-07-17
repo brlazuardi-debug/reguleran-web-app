@@ -1,12 +1,22 @@
 import { useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { Music, ListMusic, CalendarCheck, ArrowRight, TrendingUp, Clock, Sparkles } from 'lucide-react'
+import { Music, ListMusic, CalendarCheck, ArrowRight, TrendingUp, Clock, Sparkles, Settings, Layers, SlidersHorizontal, Globe } from 'lucide-react'
 import useSongStore from '../stores/songStore'
 import useSetlistStore from '../stores/setlistStore'
 import useSessionStore from '../stores/sessionStore'
+import useRoleStore from '../stores/roleStore'
+import RoleBadge from '../components/role/RoleBadge'
 import { Badge } from '../components/ui/Badge'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
+
+const ROLE_LABELS = {
+  guitar: 'Gitaris',
+  bass: 'Bassist',
+  keyboard: 'Keyboardist',
+  drums: 'Drummer',
+  vocal: 'Vokalis',
+}
 
 const statCards = [
   { label: 'Total Lagu', link: '/app/songs', icon: Music, key: 'songs' },
@@ -18,6 +28,7 @@ export default function Dashboard() {
   const { songs, subscribe: subSongs } = useSongStore()
   const { setlists, subscribe: subSetlists } = useSetlistStore()
   const { sessions, subscribe: subSessions, getUpcoming } = useSessionStore()
+  const { role } = useRoleStore()
 
   useEffect(() => {
     const unsub1 = subSongs()
@@ -27,6 +38,9 @@ export default function Dashboard() {
   }, [subSongs, subSetlists, subSessions])
 
   const upcoming = getUpcoming().slice(0, 5)
+
+  const songsWithSections = songs.filter((s) => s.sections?.length > 0).length
+  const songsWithRoleNotes = songs.filter((s) => s.sections?.some((sec) => sec.roleNotes)).length
 
   const getValue = (key) => {
     if (key === 'songs') return songs.length
@@ -72,6 +86,65 @@ export default function Dashboard() {
             </Link>
           )
         })}
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
+        <Link to="/app/settings" className="group">
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 p-5 sm:p-6">
+            <div className="flex items-start justify-between mb-3">
+              <div className="w-11 h-11 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <Settings size={22} className="text-neutral-600 dark:text-neutral-400" />
+              </div>
+              <ArrowRight size={16} className="text-neutral-300 dark:text-neutral-600 transition-all duration-300 group-hover:translate-x-0.5" />
+            </div>
+            <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">Peran Aktif</p>
+            {role ? (
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl font-display text-neutral-900 dark:text-white">
+                  {ROLE_LABELS[role] || role}
+                </span>
+                <RoleBadge role={role} />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <span className="text-xl sm:text-2xl font-display text-neutral-400 dark:text-neutral-500">
+                  Belum diatur
+                </span>
+                <span className="px-2 py-0.5 text-[10px] font-medium rounded-md bg-neutral-100 dark:bg-neutral-800 text-neutral-500 dark:text-neutral-400">
+                  Klik atur
+                </span>
+              </div>
+            )}
+            <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-2">
+              {role ? 'Ubah peran di Pengaturan' : 'Atur peran untuk melihat catatan khusus'}
+            </p>
+          </div>
+        </Link>
+
+        <Link to="/app/songs" className="group">
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 transition-all duration-300 hover:shadow-xl hover:-translate-y-0.5 p-5 sm:p-6">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex gap-1.5">
+                <div className="w-11 h-11 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                  <Layers size={22} className="text-neutral-600 dark:text-neutral-400" />
+                </div>
+              </div>
+              <ArrowRight size={16} className="text-neutral-300 dark:text-neutral-600 transition-all duration-300 group-hover:translate-x-0.5" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">Ada Bagian</p>
+                <p className="text-2xl sm:text-3xl font-display text-neutral-900 dark:text-white">{songsWithSections}</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">dari {songs.length} lagu</p>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-neutral-500 dark:text-neutral-400 mb-1">Ada Catatan</p>
+                <p className="text-2xl sm:text-3xl font-display text-neutral-900 dark:text-white">{songsWithRoleNotes}</p>
+                <p className="text-xs text-neutral-400 dark:text-neutral-500 mt-1">dari {songs.length} lagu</p>
+              </div>
+            </div>
+          </div>
+        </Link>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-5">
@@ -159,6 +232,51 @@ export default function Dashboard() {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Atur Jadwal</p>
                 <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Kelola jadwal latihan dan manggung</p>
+              </div>
+              <ArrowRight size={15} className="text-neutral-300 dark:text-neutral-600 transition-all duration-200 group-hover:translate-x-0.5" />
+            </Link>
+          </div>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-2 gap-5">
+        <div className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 overflow-hidden">
+          <div className="flex items-center justify-between px-5 py-4 border-b border-neutral-100 dark:border-neutral-800">
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <SlidersHorizontal size={16} className="text-neutral-600 dark:text-neutral-400" />
+              </div>
+              <h2 className="font-semibold text-neutral-900 dark:text-white">Tools</h2>
+            </div>
+          </div>
+          <div className="p-5 space-y-3">
+            <Link to="/app/pitchlist" className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <SlidersHorizontal size={18} className="text-neutral-600 dark:text-neutral-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Pitchlist</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Transpose cepat banyak lagu</p>
+              </div>
+              <ArrowRight size={15} className="text-neutral-300 dark:text-neutral-600 transition-all duration-200 group-hover:translate-x-0.5" />
+            </Link>
+            <Link to="/app/library" className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <Globe size={18} className="text-neutral-600 dark:text-neutral-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Library Publik</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Jelajahi lagu dari player lain</p>
+              </div>
+              <ArrowRight size={15} className="text-neutral-300 dark:text-neutral-600 transition-all duration-200 group-hover:translate-x-0.5" />
+            </Link>
+            <Link to="/app/schedule" className="flex items-center gap-3 p-3 rounded-xl hover:bg-neutral-50 dark:hover:bg-neutral-800/50 transition-all duration-200 group">
+              <div className="w-10 h-10 rounded-xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
+                <CalendarCheck size={18} className="text-neutral-600 dark:text-neutral-400" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Jadwal</p>
+                <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">Kalender mingguan sesi</p>
               </div>
               <ArrowRight size={15} className="text-neutral-300 dark:text-neutral-600 transition-all duration-200 group-hover:translate-x-0.5" />
             </Link>

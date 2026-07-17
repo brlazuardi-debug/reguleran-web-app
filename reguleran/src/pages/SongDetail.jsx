@@ -1,24 +1,24 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit3, Trash2, Music } from 'lucide-react'
+import { ArrowLeft, Edit3, Trash2, Music, Eye, EyeOff } from 'lucide-react'
 import useSongStore from '../stores/songStore'
 import ChordDisplay from '../components/songs/ChordDisplay'
 import TransposeSlider from '../components/songs/TransposeSlider'
-import SongForm from '../components/songs/SongForm'
+import RoleSpecificPanel from '../components/songs/RoleSpecificPanel'
 import PitchShifter from '../components/audio/PitchShifter'
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Spinner } from '../components/ui/Spinner'
 import { useToast } from '../components/ui/Toast'
+import useViewPreferencesStore from '../stores/viewPreferencesStore'
+import { useActiveRole } from '../hooks/useActiveRole'
 
 export default function SongDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
-  const { songs, subscribe, updateSong, deleteSong } = useSongStore()
+  const { songs, subscribe, deleteSong } = useSongStore()
   const [transpose, setTranspose] = useState(0)
-  const [editing, setEditing] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
   const [showPitch, setShowPitch] = useState(false)
   const [showDelete, setShowDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
@@ -30,19 +30,10 @@ export default function SongDetail() {
   }, [subscribe])
 
   const song = songs.find((s) => s.id === id)
+  const sections = song?.sections || []
 
-  const handleEdit = async (data) => {
-    setSubmitting(true)
-    try {
-      await updateSong(id, data)
-      setEditing(false)
-      toast({ type: 'success', message: 'Lagu berhasil diperbarui' })
-    } catch (err) {
-      toast({ type: 'error', message: 'Gagal update: ' + err.message })
-    } finally {
-      setSubmitting(false)
-    }
-  }
+  const { showAllRoles, setShowAllRoles } = useViewPreferencesStore()
+  const activeRole = useActiveRole()
 
   const handleDelete = async () => {
     setDeleting(true)
@@ -56,11 +47,7 @@ export default function SongDetail() {
     }
   }
 
-  if (!song) {
-    return (
-      <Spinner className="min-h-[60vh]" size="lg" />
-    )
-  }
+  if (!song) return <Spinner className="min-h-[60vh]" size="lg" />
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -81,54 +68,58 @@ export default function SongDetail() {
             </p>
           </div>
           <div className="flex gap-2 shrink-0">
-            <Button
-              variant="secondary"
-              size="sm"
-              icon={Edit3}
-              onClick={() => setEditing(!editing)}
-            >
-              {editing ? 'Batal' : 'Edit'}
+            <Button variant="secondary" size="sm" icon={Edit3} onClick={() => navigate(`/app/songs/${id}/edit`)}>
+              Edit
             </Button>
-            <Button
-              variant="danger"
-              size="sm"
-              icon={Trash2}
-              onClick={() => setShowDelete(true)}
-            >
+            <Button variant="danger" size="sm" icon={Trash2} onClick={() => setShowDelete(true)}>
               Hapus
             </Button>
           </div>
         </div>
       </div>
 
-      {editing ? (
-        <Card>
-          <h2 className="font-semibold text-neutral-900 dark:text-white mb-4">Edit Lagu</h2>
-          <SongForm initial={song} onSubmit={handleEdit} onCancel={() => setEditing(false)} submitting={submitting} />
-        </Card>
-      ) : (
-        <>
-          <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-            <div className="lg:col-span-3">
-              <Card>
-                <ChordDisplay lyrics={song.lyrics} transpose={transpose} />
-              </Card>
-            </div>
-            <div className="lg:col-span-1 space-y-4">
-              <TransposeSlider value={transpose} onChange={setTranspose} />
-              <Button
-                variant="secondary"
-                fullWidth
-                icon={Music}
-                onClick={() => setShowPitch(!showPitch)}
-              >
-                {showPitch ? 'Tutup' : 'Pitch Shifter'}
-              </Button>
-            </div>
-          </div>
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        <div className="lg:col-span-3 space-y-4">
+          <Card>
+            <ChordDisplay lyrics={song.lyrics} transpose={transpose} sections={sections} filterByRole={!showAllRoles ? activeRole : null} />
+          </Card>
 
-          {showPitch && <PitchShifter />}
-        </>
+          {activeRole && sections.some((s) => s.roleNotes) && (
+            <Card>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="text-sm font-semibold text-neutral-900 dark:text-neutral-100">
+                  Catatan Peran
+                </h3>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-neutral-400 dark:text-neutral-500">
+                    {showAllRoles ? 'Semua' : 'Peran Saya'}
+                  </span>
+                  <button
+                    onClick={() => setShowAllRoles(!showAllRoles)}
+                    className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:text-neutral-300 dark:hover:bg-neutral-800 transition-colors"
+                  >
+                    {showAllRoles ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-2">
+                {sections.filter((s) => showAllRoles || (activeRole && s.roleNotes?.[activeRole])).map((section) => (
+                  <RoleSpecificPanel key={section.id} section={section} />
+                ))}
+              </div>
+            </Card>
+          )}
+        </div>
+        <div className="lg:col-span-1 space-y-4">
+          <TransposeSlider value={transpose} onChange={setTranspose} />
+          <Button variant="secondary" fullWidth icon={Music} onClick={() => setShowPitch(!showPitch)}>
+            {showPitch ? 'Tutup' : 'Pitch Shifter'}
+          </Button>
+        </div>
+      </div>
+
+      {showPitch && (
+        <PitchShifter songId={song.id} audioUrl={song.audioUrl} audioFileName={song.audioFileName} />
       )}
 
       <ConfirmDialog

@@ -1,36 +1,7 @@
 import { create } from 'zustand'
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, where, getDocs } from 'firebase/firestore'
-import { getFirestoreDB, isConfigured } from '../services/firebase'
+import * as db from '../services/db'
 import { deleteAudio } from '../services/storage'
 import useAuthStore from './authStore'
-
-async function syncPublicSong(db, songId, songData) {
-  if (!songData.isPublic) return
-  try {
-    const pubRef = doc(db, 'publicSongs', songId)
-    await updateDoc(pubRef, {
-      ...songData,
-      originalSongId: songId,
-    })
-  } catch {
-    await addDoc(collection(db, 'publicSongs'), {
-      ...songData,
-      originalSongId: songId,
-    })
-  }
-}
-
-async function removePublicSong(db, songId) {
-  try {
-    const q = query(collection(db, 'publicSongs'), where('originalSongId', '==', songId))
-    const snapshot = await getDocs(q)
-    snapshot.forEach(async (d) => {
-      await deleteDoc(doc(db, 'publicSongs', d.id))
-    })
-  } catch {
-    // ignore
-  }
-}
 
 const useSongStore = create((set) => ({
   songs: [],
@@ -38,72 +9,53 @@ const useSongStore = create((set) => ({
   error: null,
 
   subscribe: () => {
-    if (!isConfigured()) return () => {}
     const user = useAuthStore.getState().user
     if (!user) return () => {}
 
-    const db = getFirestoreDB()
-    if (!db) return () => {}
-
     set({ loading: true })
-    const q = query(
-      collection(db, 'songs'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    )
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const songs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        set({ songs, loading: false })
-      },
-      (error) => set({ error: error.message, loading: false })
-    )
+    return db.subscribe('songs', (items) => {
+      const songs = items
+        .filter((s) => s.userId === user.uid)
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      set({ songs, loading: false })
+    })
   },
 
   addSong: async (songData) => {
     const user = useAuthStore.getState().user
-    const db = getFirestoreDB()
-    if (!user || !db) throw new Error('Not available')
-    const docRef = await addDoc(collection(db, 'songs'), {
-      ...songData,
-      userId: user.uid,
-      createdAt: new Date().toISOString(),
-    })
+    if (!user) throw new Error('Not available')
+    const id = await db.addItem('songs', { ...songData, userId: user.uid, createdAt: new Date().toISOString() })
     if (songData.isPublic) {
-      await addDoc(collection(db, 'publicSongs'), {
-        ...songData,
-        originalSongId: docRef.id,
-        sharedBy: user.uid,
-        sharedByName: user.email,
-        createdAt: new Date().toISOString(),
-      })
+      await db.addItem('publicSongs', { ...songData, originalSongId: id, sharedBy: user.uid, sharedByName: user.email, createdAt: new Date().toISOString() })
     }
-    return docRef.id
+    return id
   },
 
   updateSong: async (id, songData) => {
     const user = useAuthStore.getState().user
-    const db = getFirestoreDB()
-    if (!user || !db) throw new Error('Not available')
-    await updateDoc(doc(db, 'songs', id), songData)
+    if (!user) throw new Error('Not available')
+    await db.updateItem('songs', id, songData)
     if (songData.isPublic) {
-      await syncPublicSong(db, id, {
-        ...songData,
-        sharedBy: user.uid,
-        sharedByName: user.email,
-      })
+      const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+      if (existing.length > 0) {
+        await db.updateItem('publicSongs', existing[0].id, { ...songData, sharedBy: user.uid, sharedByName: user.email })
+      } else {
+        await db.addItem('publicSongs', { ...songData, originalSongId: id, sharedBy: user.uid, sharedByName: user.email, createdAt: new Date().toISOString() })
+      }
     } else {
-      await removePublicSong(db, id)
+      const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+      for (const item of existing) {
+        await db.deleteItem('publicSongs', item.id)
+      }
     }
   },
 
   deleteSong: async (id) => {
-    const db = getFirestoreDB()
-    if (!db) throw new Error('Not available')
-    await deleteDoc(doc(db, 'songs', id))
-    await removePublicSong(db, id)
+    await db.deleteItem('songs', id)
+    const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+    for (const item of existing) {
+      await db.deleteItem('publicSongs', item.id)
+    }
     await deleteAudio(id)
   },
 

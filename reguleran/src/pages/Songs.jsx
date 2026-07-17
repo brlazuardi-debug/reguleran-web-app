@@ -1,41 +1,33 @@
 import { useEffect, useState } from 'react'
-import { Music, Plus, Sparkles, Search, ArrowUpDown } from 'lucide-react'
+import { Music, Plus, Sparkles, Search, ArrowUpDown, ChevronDown } from 'lucide-react'
 import useSongStore from '../stores/songStore'
 import SongCard from '../components/songs/SongCard'
-import SongForm from '../components/songs/SongForm'
-import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { EmptyState } from '../components/ui/EmptyState'
 import { SkeletonCard } from '../components/ui/Skeleton'
-import { useToast } from '../components/ui/Toast'
+import { Link } from 'react-router-dom'
 
 const KEY_OPTIONS_ALL = ['', 'C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B', 'Cm', 'C#m', 'Dm', 'D#m', 'Em', 'Fm', 'F#m', 'Gm', 'G#m', 'Am', 'A#m', 'Bm']
 
+const PAGE_SIZE = 20
+
 export default function Songs() {
-  const { songs, loading, subscribe, addSong } = useSongStore()
-  const [showForm, setShowForm] = useState(false)
-  const [submitting, setSubmitting] = useState(false)
+  const { songs, loading, subscribe } = useSongStore()
   const [search, setSearch] = useState('')
   const [keyFilter, setKeyFilter] = useState('')
   const [sortBy, setSortBy] = useState('newest')
-  const { toast } = useToast()
+  const [page, setPage] = useState(0)
+  const [prevKey, setPrevKey] = useState('')
 
   useEffect(() => {
     const unsub = subscribe()
     return () => unsub?.()
   }, [subscribe])
 
-  const handleAdd = async (data) => {
-    setSubmitting(true)
-    try {
-      await addSong(data)
-      setShowForm(false)
-      toast({ type: 'success', message: 'Lagu berhasil ditambahkan' })
-    } catch (err) {
-      toast({ type: 'error', message: 'Gagal menambah lagu: ' + err.message })
-    } finally {
-      setSubmitting(false)
-    }
+  const filterKey = JSON.stringify({ search, keyFilter, sortBy })
+  if (filterKey !== prevKey) {
+    setPrevKey(filterKey)
+    setPage(0)
   }
 
   let filtered = songs.filter((s) => {
@@ -54,6 +46,9 @@ export default function Songs() {
     return (b.createdAt || '').localeCompare(a.createdAt || '')
   })
 
+  const paged = filtered.slice(0, (page + 1) * PAGE_SIZE)
+  const hasMore = paged.length < filtered.length
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -65,22 +60,10 @@ export default function Songs() {
           <h1 className="text-xl sm:text-2xl font-display text-neutral-900 dark:text-white">Katalog Lagu</h1>
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1">{songs.length} lagu tersimpan</p>
         </div>
-        <Button variant={showForm ? 'secondary' : 'primary'} icon={showForm ? undefined : Plus} onClick={() => setShowForm(!showForm)}>
-          {showForm ? 'Batal' : 'Tambah Lagu'}
-        </Button>
+        <Link to="/app/songs/new">
+          <Button variant="primary" icon={Plus}>Tambah Lagu</Button>
+        </Link>
       </div>
-
-      {showForm && (
-        <Card variant="glass" className="border-neutral-300 dark:border-neutral-700">
-          <div className="flex items-center gap-2.5 mb-4">
-            <div className="w-8 h-8 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center">
-              <Music size={16} className="text-neutral-600 dark:text-neutral-400" />
-            </div>
-            <h2 className="font-semibold text-neutral-900 dark:text-white">Tambah Lagu Baru</h2>
-          </div>
-          <SongForm onSubmit={handleAdd} onCancel={() => setShowForm(false)} submitting={submitting} />
-        </Card>
-      )}
 
       {songs.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-3">
@@ -124,16 +107,25 @@ export default function Songs() {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => <SkeletonCard key={i} />)}
         </div>
-      ) : songs.length === 0 && !showForm ? (
+      ) : songs.length === 0 ? (
         <EmptyState icon={Music} title="Belum ada lagu" description="Tambah lagu pertama kamu untuk memulai!" action={
-          <Button icon={Plus} onClick={() => setShowForm(true)}>Tambah Lagu</Button>
+          <Link to="/app/songs/new"><Button icon={Plus}>Tambah Lagu</Button></Link>
         } />
       ) : filtered.length === 0 ? (
-        <EmptyState icon={Search} title="Lagu tidak ditemukan" description={`Tidak ada lagu yang cocok`} />
+        <EmptyState icon={Search} title="Lagu tidak ditemukan" description="Tidak ada lagu yang cocok" />
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
-          {filtered.map((song) => <SongCard key={song.id} song={song} />)}
-        </div>
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {paged.map((song) => <SongCard key={song.id} song={song} />)}
+          </div>
+          {hasMore && (
+            <div className="text-center pt-2">
+              <Button variant="secondary" icon={ChevronDown} onClick={() => setPage(page + 1)}>
+                Tampilkan Lainnya ({filtered.length - paged.length} tersisa)
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )

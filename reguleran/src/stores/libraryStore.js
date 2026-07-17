@@ -1,6 +1,5 @@
 import { create } from 'zustand'
-import { collection, query, orderBy, onSnapshot } from 'firebase/firestore'
-import { getFirestoreDB, isConfigured } from '../services/firebase'
+import * as db from '../services/db'
 
 const useLibraryStore = create((set) => ({
   publicSongs: [],
@@ -8,25 +7,11 @@ const useLibraryStore = create((set) => ({
   error: null,
 
   subscribe: () => {
-    if (!isConfigured()) return () => {}
-
-    const db = getFirestoreDB()
-    if (!db) return () => {}
-
     set({ loading: true })
-    const q = query(
-      collection(db, 'publicSongs'),
-      orderBy('createdAt', 'desc')
-    )
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const publicSongs = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        set({ publicSongs, loading: false })
-      },
-      (error) => set({ error: error.message, loading: false })
-    )
+    return db.subscribe('publicSongs', (items) => {
+      const publicSongs = items.sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      set({ publicSongs, loading: false })
+    })
   },
 }))
 

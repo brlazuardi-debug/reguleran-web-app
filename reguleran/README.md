@@ -1,63 +1,95 @@
 # Reguleran Musik
 
-> Platform manajemen musik 
+> Platform manajemen musik untuk tim ibadah
 
-Reguleran membantu tim musik mengelola lagu, setlist, dan jadwal latihan dalam satu platform yang modern, cepat, dan mudah digunakan.
+Kelola lagu (chord, lirik, section, role notes), setlist, sesi mingguan, jadwal kalender, audio pitch shifter, dan library publik — dalam satu platform modern, cepat, PWA-ready.
 
 ## Fitur
 
-- **Manajemen Lagu** — Simpan chord, lirik, dan nada dasar. Transpose otomatis dengan slider.
-- **Setlist Cerdas** — Buat setlist untuk setiap ibadah. Urutkan, edit, dan atur nada dasar per lagu.
-- **Sesi & Jadwal** — Atur jadwal latihan dan pelayanan mingguan dengan kalender interaktif.
-- **Pitch Shifter** — Ubah nada audio langsung dari browser (Web Audio API).
-- **Lokasi** — Tandai lokasi venue dengan peta interaktif (Leaflet).
-- **Autentikasi** — Login/register dengan Firebase Auth.
-- **Monochrome Theme** — Tampilan elegan dengan dark mode dan light mode.
-- **Responsif** — Mobile-first, berfungsi sempurna di semua perangkat.
+- **Manajemen Lagu** — Simpan chord, lirik, nada dasar, section, dan catatan per role. Transpose otomatis dengan slider.
+- **Role-Specific View** — Pilih peran (Gitaris, Bassist, Keyboardist, Drummer, Vokalis). Tampilan dan catatan disesuaikan otomatis.
+- **Setlist + Player** — Buat setlist, urutkan lagu, atur transpose per lagu. Mode player untuk tampilan sekuensial.
+- **Sesi & Jadwal** — Atur jadwal latihan dan pelayanan mingguan. Kalender interaktif + export ICS.
+- **Pitch Shifter** — Upload audio, ubah nada real-time dengan Tone.js.
+- **Library Publik** — Bagikan dan jelajahi lagu dari player lain.
+- **PWA** — Install sebagai aplikasi, akses offline.
 
 ## Tech Stack
 
 | Teknologi | Kegunaan |
 |---|---|
 | **React 19** | UI framework |
-| **Vite 8** | Build tool |
-| **Tailwind CSS 3** | Styling |
-| **Firebase** | Auth, Firestore (backend) |
-| **Zustand** | State management |
+| **Vite 8** (rolldown) | Build tool |
+| **Supabase** | Auth, PostgreSQL, Storage, Realtime |
+| **Zustand 5** | State management |
+| **Tailwind CSS 3** | Styling (monochrome palette, dark mode) |
 | **React Router 7** | Routing |
-| **React Leaflet** | Peta interaktif |
-| **Tone.js** | Audio / Pitch Shifter |
+| **Tone.js 15** | Audio / Pitch Shifter |
 | **Lucide React** | Ikon |
+| **React Leaflet** | Peta interaktif |
+| **vite-plugin-pwa** | PWA + service worker |
 
 ## Struktur Proyek
 
 ```
 reguleran/
-├── public/               # Aset statis (favicon, icons)
+├── public/                  # Favicon, PWA icons
 ├── src/
 │   ├── components/
-│   │   ├── auth/         # Login & Register form
-│   │   ├── audio/        # Pitch Shifter
-│   │   ├── layout/       # Navbar, Layout
-│   │   ├── location/     # Map Picker
-│   │   ├── schedule/     # Calendar View
-│   │   ├── sessions/     # Session Card & Form
-│   │   ├── setlists/     # Setlist Card, Form, SongPicker
-│   │   ├── songs/        # Song Card, Form, ChordDisplay, TransposeSlider
-│   │   └── ui/           # Button, Card, Badge, Modal, Toast, dll
-│   ├── pages/            # Landing, Dashboard, Songs, Setlists, Sessions, dll
-│   ├── stores/           # Zustand stores (auth, song, setlist, session)
-│   ├── services/         # Firebase init, notification
-│   ├── utils/            # Chord transpose utility
-│   ├── App.jsx           # Route definitions
-│   ├── main.jsx          # Entry point
-│   └── index.css         # Global styles, utility classes
-├── .env                  # Firebase credentials (VITE_*)
-├── tailwind.config.js    # Monochrome palette, animations, fonts
-├── vite.config.js        # Vite configuration
-├── index.html            # HTML entry
+│   │   ├── auth/            # LoginForm, RegisterForm, ProtectedRoute
+│   │   ├── audio/           # PitchShifter (Tone.js)
+│   │   ├── layout/          # Navbar, Sidebar, Layout
+│   │   ├── location/        # MapPicker (Leaflet)
+│   │   ├── pitchlist/       # PitchCard
+│   │   ├── role/            # RoleOnboardingModal, RoleBadge
+│   │   ├── schedule/        # CalendarView
+│   │   ├── sessions/        # SessionCard, SessionForm
+│   │   ├── setlists/        # SetlistCard, SetlistForm, SongPicker, SetlistPlayer
+│   │   ├── songs/           # SongCard, SongForm, ChordDisplay, TransposeSlider,
+│   │   │                    # SongSectionBadge, SongSectionEditor, RoleSpecificPanel
+│   │   ├── tabs/            # TabViewer (ASCII guitar/bass tabs)
+│   │   └── ui/              # Button, Card, Badge, Modal, Tabs, Toast, Spinner,
+│   │                        # Skeleton, EmptyState, Input, Select, Textarea, Toggle,
+│   │                        # ConfirmDialog, ErrorBoundary
+│   ├── hooks/               # useActiveRole
+│   ├── pages/               # 17 route pages (lihat Routes)
+│   ├── services/            # supabase.js, auth.js, db.js, storage.js, notification.js
+│   ├── stores/              # Zustand stores (auth, song, setlist, session, role,
+│   │                        # library, pitchlist, viewPreferences)
+│   ├── utils/               # transpose.js, calendar.js
+│   ├── App.jsx              # Routes + ErrorBoundary
+│   ├── main.jsx             # Entry point
+│   └── index.css            # Global styles
+├── .env                     # Supabase credentials
+├── supabase-migration.sql   # PostgreSQL schema + RLS + triggers
+├── tailwind.config.js       # Monochrome palette, animations, fonts
+├── vite.config.js           # Vite + PWA config
 └── package.json
 ```
+
+## Routes
+
+| Path | Page | Auth |
+|------|------|------|
+| `/` | Landing | Publik |
+| `/login` | Login | Publik |
+| `/register` | Register | Publik |
+| `/app` | Dashboard | Protected |
+| `/app/songs` | Katalog Lagu | Protected |
+| `/app/songs/new` | Tambah Lagu | Protected |
+| `/app/songs/:id` | Detail Lagu | Protected |
+| `/app/songs/:id/edit` | Edit Lagu | Protected |
+| `/app/setlists` | Setlist | Protected |
+| `/app/setlists/:id` | Detail Setlist | Protected |
+| `/app/setlists/:id/edit` | Edit Setlist | Protected |
+| `/app/sessions` | Sesi | Protected |
+| `/app/sessions/:id` | Detail Sesi | Protected |
+| `/app/sessions/:id/edit` | Edit Sesi | Protected |
+| `/app/pitchlist` | Pitchlist | Protected |
+| `/app/library` | Library Publik | Protected |
+| `/app/schedule` | Jadwal | Protected |
+| `/app/settings` | Pengaturan | Protected |
+| `*` | 404 | Publik |
 
 ## Memulai
 
@@ -65,52 +97,35 @@ reguleran/
 
 - Node.js 20+
 - npm 10+
-- Firebase project (Auth + Firestore)
+- Supabase project ([dashboard](https://supabase.com/dashboard))
 
 ### Instalasi
 
 ```bash
-# Clone repo
-git clone <repo-url>
 cd reguleran
-
-# Install dependencies
 npm install
-
-# Konfigurasi Firebase
-cp .env.example .env   # atau edit .env langsung
-# Isi dengan kredensial Firebase project kamu
 ```
 
-### Firebase Setup
+### Supabase Setup
 
-1. Buka [Firebase Console](https://console.firebase.google.com)
-2. Buat project baru atau pilih yang sudah ada
-3. Enable **Authentication** → Sign-in method → Email/Password
-4. Buat **Cloud Firestore** database
-5. Register **Web App** untuk mendapatkan konfigurasi
-6. Copy konfigurasi ke `.env` dengan prefix `VITE_FIREBASE_*`
-
-Contoh `.env`:
-
-```env
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abc123
-```
+1. Buka [Supabase Dashboard](https://supabase.com/dashboard/project/ynsgcrctpamllntcrbjj) → Project Settings → API
+2. Copy `Project URL` dan `anon public key` ke `.env`
+3. SQL Editor → buka `supabase-migration.sql` → Execute
+4. **Authentication** → Providers → enable **Email** + **Google** (isi Client ID & Secret)
+5. **Authentication** → Settings → set **Site URL** ke `http://localhost:5173`
+6. **Storage** → Create bucket → nama: `audio`, Public bucket: ON
+7. Storage → `audio` bucket → Policies → tambah:
+   - `SELECT` → `true` (public read)
+   - `INSERT/UPDATE/DELETE` → `auth.role() = 'authenticated'`
 
 ### Development
 
 ```bash
 npm run dev
+# Buka http://localhost:5173
 ```
 
-Buka `http://localhost:5173` di browser.
-
-### Production Build
+### Build
 
 ```bash
 npm run build
@@ -121,33 +136,50 @@ npm run preview
 
 | Perintah | Deskripsi |
 |---|---|
-| `npm run dev` | Jalankan dev server |
-| `npm run build` | Build untuk production |
+| `npm run dev` | Dev server |
+| `npm run build` | Build production |
 | `npm run preview` | Preview build |
-| `npm run lint` | Lint semua file |
+| `npm run lint` | ESLint |
 
-## Firestore Collection Structure
+## Database (PostgreSQL via Supabase)
 
+Lihat `supabase-migration.sql` untuk schema lengkap.
+
+**Tables**: `users`, `songs`, `setlists`, `sessions`, `public_songs`
+
+**Key points**:
+- `users.id` = FK ke `auth.users(id)` dengan trigger `handle_new_user()` auto-create baris saat signup
+- RLS diaktifkan di semua tabel — kebijakan berbasis `auth.uid()`
+- `songs.sections` JSONB — array section dengan roleNotes per role
+- `setlists.songs` JSONB — array `{ songId, transpose, order }`
+- `sessions.location` JSONB — `{ venue, address, contactPerson, phone, locationNotes }`
+
+### Song Section Schema
+
+```js
+{
+  id: string,
+  label: 'intro' | 'verse' | 'chorus' | 'bridge' | 'ending' | 'outro' | 'interlude',
+  startLine: number,        // baris lirik (0-indexed)
+  customLabel?: string,
+  notes?: string,
+  roleNotes?: {
+    guitar?:  { chordVoicing, notes, tabReference },
+    bass?:    { notes, tabReference },
+    keyboard?:{ chordVoicing, notes },
+    drums?:   { pattern, notes, dynamics: 'soft'|'medium'|'loud' },
+    vocal?:   { harmony, notes, breathMarks: number[] }
+  }
+}
 ```
-songs/           → { title, artist, key, lyrics, createdAt, updatedAt }
-setlists/        → { name, description, songs: [{songId, transpose, order}], createdAt }
-sessions/        → { name, day, time, setlistId, location: {venue, address, lat, lng}, active }
-```
 
-## Izin
+## Catatan
 
-```
-firebase.rules  → Deny all by default — perlu diupdate untuk production
-```
-
-## Deployment
-
-1. Build project: `npm run build`
-2. Deploy ke Firebase Hosting (atau static host lain):
-
-```bash
-firebase deploy --only hosting
-```
+- Semua interaksi database via service layer (`services/db.js`) — siap untuk diganti implementasinya tanpa sentuh store
+- `viewPreferencesStore` persist ke localStorage via Zustand persist middleware
+- PWA auto-update (service worker regenerate tiap build)
+- Audio file disimpan di Supabase Storage bucket `audio`
+- Notifikasi browser via `services/notification.js` (Notification API, tanpa FCM)
 
 ## Lisensi
 

@@ -1,71 +1,32 @@
-import { ref, uploadBytesResumable, getDownloadURL, deleteObject } from 'firebase/storage'
-import { getFirebaseStorage, isConfigured } from './firebase'
+import { supabase } from './supabase'
+
+const BUCKET = 'audio'
 
 export async function uploadAudio(songId, file, onProgress) {
-  if (!isConfigured()) throw new Error('Firebase not configured')
-
-  const storage = getFirebaseStorage()
-  if (!storage) throw new Error('Storage not available')
-
-  const fileExt = file.name.split('.').pop() || 'mp3'
-  const fileName = `${songId}.${fileExt}`
-  const storageRef = ref(storage, `audio/${fileName}`)
-
-  const task = uploadBytesResumable(storageRef, file)
-
-  return new Promise((resolve, reject) => {
-    task.on(
-      'state_changed',
-      (snapshot) => {
-        const pct = (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-        onProgress?.(pct)
-      },
-      (error) => reject(error),
-      async () => {
-        const url = await getDownloadURL(task.snapshot.ref)
-        resolve({ url, fileName })
-      }
-    )
+  const ext = file.name.split('.').pop() || 'mp3'
+  const path = `audio/${songId}.${ext}`
+  onProgress?.(0)
+  const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
+    cacheControl: '3600',
+    upsert: true,
+    contentType: file.type || 'audio/mpeg',
   })
+  if (error) throw error
+  onProgress?.(100)
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(path)
+  return { url: data.publicUrl, fileName: path }
 }
 
 export async function getAudioUrl(songId) {
-  if (!isConfigured()) return null
-
-  const storage = getFirebaseStorage()
-  if (!storage) return null
-
-  try {
-    const storageRef = ref(storage, `audio/${songId}.mp3`)
-    return await getDownloadURL(storageRef)
-  } catch {
-    try {
-      const storageRef = ref(storage, `audio/${songId}.wav`)
-      return await getDownloadURL(storageRef)
-    } catch {
-      try {
-        const storageRef = ref(storage, `audio/${songId}.ogg`)
-        return await getDownloadURL(storageRef)
-      } catch {
-        return null
-      }
-    }
-  }
+  const { data } = supabase.storage.from(BUCKET).getPublicUrl(`audio/${songId}.mp3`)
+  return data?.publicUrl || null
 }
 
 export async function deleteAudio(songId) {
-  if (!isConfigured()) return
-
-  const storage = getFirebaseStorage()
-  if (!storage) return
-
   const extensions = ['mp3', 'wav', 'ogg']
-  for (const ext of extensions) {
-    try {
-      const storageRef = ref(storage, `audio/${songId}.${ext}`)
-      await deleteObject(storageRef)
-    } catch {
-      // file doesn't exist, try next extension
-    }
-  }
+  await Promise.all(extensions.map(async (ext) => {
+    const { error } = await supabase.storage.from(BUCKET).remove([`audio/${songId}.${ext}`])
+    // ignore errors (file might not exist)
+    if (error) { /* ignore */ }
+  }))
 }

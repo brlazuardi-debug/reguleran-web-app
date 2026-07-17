@@ -1,46 +1,60 @@
 import { create } from 'zustand'
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth'
-import { getFirebaseAuth, isConfigured } from '../services/firebase'
+import * as auth from '../services/auth'
+import * as db from '../services/db'
 
 const useAuthStore = create((set) => ({
   user: null,
   loading: true,
   error: null,
 
+  setUser: (user) => set({ user }),
+  setLoading: (loading) => set({ loading }),
+  setError: (error) => set({ error }),
+
   init: () => {
-    if (!isConfigured()) {
-      set({ loading: false, error: null })
-      return () => {}
-    }
-    const auth = getFirebaseAuth()
-    if (!auth) {
-      set({ loading: false, error: 'Auth not available' })
-      return () => {}
-    }
-    return onAuthStateChanged(auth, (user) => {
+    const unsub = auth.onAuthChange((user) => {
       set({ user, loading: false })
     })
+    return unsub
   },
 
   login: async (email, password) => {
-    const auth = getFirebaseAuth()
-    if (!auth) throw new Error('Firebase not configured')
     set({ error: null })
-    const result = await signInWithEmailAndPassword(auth, email, password)
-    set({ user: result.user })
+    try {
+      const user = await auth.login(email, password)
+      set({ user })
+    } catch (e) {
+      set({ error: e.message })
+      throw e
+    }
   },
 
-  register: async (email, password) => {
-    const auth = getFirebaseAuth()
-    if (!auth) throw new Error('Firebase not configured')
+  register: async (email, password, displayName) => {
     set({ error: null })
-    const result = await createUserWithEmailAndPassword(auth, email, password)
-    set({ user: result.user })
+    try {
+      const user = await auth.register(email, password, displayName)
+      if (user) {
+        await db.setItem('users', user.uid, { instrumentRole: null, email, displayName, createdAt: new Date().toISOString() })
+        set({ user })
+      }
+    } catch (e) {
+      set({ error: e.message })
+      throw e
+    }
+  },
+
+  googleLogin: async () => {
+    set({ error: null })
+    try {
+      await auth.googleLogin()
+    } catch (e) {
+      set({ error: e.message })
+      throw e
+    }
   },
 
   logout: async () => {
-    const auth = getFirebaseAuth()
-    if (auth) await signOut(auth)
+    await auth.logout()
     set({ user: null })
   },
 }))

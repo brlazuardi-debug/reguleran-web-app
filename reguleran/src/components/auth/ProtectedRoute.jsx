@@ -1,6 +1,5 @@
 import { Navigate, useLocation } from 'react-router-dom'
 import useAuthStore from '../../stores/authStore'
-import { isConfigured } from '../../services/firebase'
 import { Spinner } from '../ui/Spinner'
 
 export default function ProtectedRoute({ children }) {
@@ -9,10 +8,6 @@ export default function ProtectedRoute({ children }) {
 
   if (loading) {
     return <Spinner className="min-h-[60vh]" size="lg" />
-  }
-
-  if (!isConfigured()) {
-    return <Navigate to="/settings" state={{ from: location }} replace />
   }
 
   if (!user) {

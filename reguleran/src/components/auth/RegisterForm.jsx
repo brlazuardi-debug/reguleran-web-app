@@ -1,39 +1,61 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, Music, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Music, ArrowRight, UserPlus, User } from 'lucide-react'
 import useAuthStore from '../../stores/authStore'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function RegisterForm() {
+  const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
   const [localError, setLocalError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { register, error } = useAuthStore()
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
+  const { register, googleLogin, error } = useAuthStore()
   const navigate = useNavigate()
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setLocalError('')
+
+    if (!EMAIL_RE.test(email)) {
+      setLocalError('Format email tidak valid')
+      return
+    }
+    if (password.length < 8) {
+      setLocalError('Password minimal 8 karakter')
+      return
+    }
     if (password !== confirm) {
       setLocalError('Password tidak cocok')
       return
     }
-    if (password.length < 6) {
-      setLocalError('Password minimal 6 karakter')
-      return
-    }
+
     setSubmitting(true)
     try {
-      await register(email, password)
+      await register(email, password, displayName)
       navigate('/app')
     } catch {
       // error handled by store
     } finally {
       setSubmitting(false)
+    }
+  }
+
+  const handleGoogle = async () => {
+    setGoogleSubmitting(true)
+    try {
+      await googleLogin()
+      navigate('/app')
+    } catch {
+      // error handled by store
+    } finally {
+      setGoogleSubmitting(false)
     }
   }
 
@@ -48,8 +70,8 @@ export default function RegisterForm() {
 
       <div className="relative w-full max-w-sm animate-fade-in-up">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg">
+          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity duration-200">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg cursor-pointer">
               <Music size={24} className="text-white dark:text-neutral-900" strokeWidth={2.5} />
             </div>
           </Link>
@@ -68,12 +90,22 @@ export default function RegisterForm() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <Input
+              label="Nama Lengkap"
+              type="text"
+              icon={User}
+              value={displayName}
+              onChange={(e) => setDisplayName(e.target.value)}
+              placeholder="Nama kamu"
+              autoComplete="name"
+            />
+            <Input
               label="Email"
               type="email"
               icon={Mail}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
               placeholder="email@example.com"
             />
             <Input
@@ -83,7 +115,8 @@ export default function RegisterForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Minimal 6 karakter"
+              autoComplete="new-password"
+              placeholder="Minimal 8 karakter"
             />
             <Input
               label="Konfirmasi Password"
@@ -92,12 +125,24 @@ export default function RegisterForm() {
               value={confirm}
               onChange={(e) => setConfirm(e.target.value)}
               required
+              autoComplete="new-password"
               placeholder="Ulangi password"
             />
             <Button type="submit" fullWidth loading={submitting} variant="gradient">
               Daftar Gratis
             </Button>
           </form>
+
+          <Button
+            type="button"
+            fullWidth
+            variant="secondary"
+            icon={UserPlus}
+            onClick={handleGoogle}
+            loading={googleSubmitting}
+          >
+            Daftar dengan Google
+          </Button>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -110,7 +155,7 @@ export default function RegisterForm() {
 
           <Link
             to="/login"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer"
           >
             <span>Sudah punya akun? Masuk</span>
             <ArrowRight size={14} />
@@ -118,7 +163,7 @@ export default function RegisterForm() {
         </Card>
 
         <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
-          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150 cursor-pointer">
             Kembali ke beranda
           </Link>
         </p>

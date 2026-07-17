@@ -1,39 +1,9 @@
-import { getToken, onMessage } from 'firebase/messaging'
-import { getFirebaseMessaging, isConfigured } from './firebase'
-
 export async function requestNotificationPermission() {
   if (!('Notification' in window)) {
     console.warn('Browser does not support notifications')
     return null
   }
-  const permission = await Notification.requestPermission()
-  return permission
-}
-
-export async function getFCMToken() {
-  if (!isConfigured()) return null
-  try {
-    const messaging = getFirebaseMessaging()
-    if (!messaging) return null
-    const vapidKey = import.meta.env.VITE_FIREBASE_VAPID_KEY
-    if (!vapidKey) return null
-    const token = await getToken(messaging, { vapidKey })
-    return token
-  } catch (err) {
-    console.warn('FCM token error:', err.message)
-    return null
-  }
-}
-
-export function onForegroundMessage(callback) {
-  if (!isConfigured()) return () => {}
-  try {
-    const messaging = getFirebaseMessaging()
-    if (!messaging) return () => {}
-    return onMessage(messaging, callback)
-  } catch {
-    return () => {}
-  }
+  return await Notification.requestPermission()
 }
 
 export function scheduleBrowserNotification(title, body, triggerTime) {

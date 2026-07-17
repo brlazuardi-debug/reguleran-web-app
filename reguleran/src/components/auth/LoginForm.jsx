@@ -1,20 +1,37 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, Music, ArrowRight } from 'lucide-react'
+import { Mail, Lock, Music, ArrowRight, LogIn, RefreshCw } from 'lucide-react'
 import useAuthStore from '../../stores/authStore'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [localError, setLocalError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { login, error } = useAuthStore()
+  const [googleSubmitting, setGoogleSubmitting] = useState(false)
+  const { login, googleLogin, error } = useAuthStore()
   const navigate = useNavigate()
+
+  const isNetworkError = (error || localError)?.toLowerCase().includes('koneksi')
 
   const handleSubmit = async (e) => {
     e.preventDefault()
+    setLocalError('')
+
+    if (!EMAIL_RE.test(email)) {
+      setLocalError('Format email tidak valid')
+      return
+    }
+    if (password.length < 8) {
+      setLocalError('Password minimal 8 karakter')
+      return
+    }
+
     setSubmitting(true)
     try {
       await login(email, password)
@@ -26,6 +43,20 @@ export default function LoginForm() {
     }
   }
 
+  const handleGoogle = async () => {
+    setGoogleSubmitting(true)
+    try {
+      await googleLogin()
+      navigate('/app')
+    } catch {
+      // error handled by store
+    } finally {
+      setGoogleSubmitting(false)
+    }
+  }
+
+  const displayError = localError || error
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#0a0a0a]">
       <div className="fixed inset-0 pointer-events-none">
@@ -35,8 +66,8 @@ export default function LoginForm() {
 
       <div className="relative w-full max-w-sm animate-fade-in-up">
         <div className="text-center mb-8">
-          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity">
-            <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg">
+          <Link to="/" className="inline-flex items-center gap-2 mb-6 hover:opacity-80 transition-opacity duration-200">
+            <div className="w-12 h-12 rounded-2xl bg-neutral-900 dark:bg-white flex items-center justify-center shadow-lg cursor-pointer">
               <Music size={24} className="text-white dark:text-neutral-900" strokeWidth={2.5} />
             </div>
           </Link>
@@ -47,9 +78,19 @@ export default function LoginForm() {
         </div>
 
         <Card variant="glass" className="space-y-5">
-          {error && (
-            <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
-              {error}
+          {displayError && (
+            <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
+              <span className="flex-1">{displayError}</span>
+              {isNetworkError && (
+                <button
+                  type="button"
+                  onClick={handleSubmit}
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors duration-150 cursor-pointer"
+                >
+                  <RefreshCw size={12} />
+                  Coba Lagi
+                </button>
+              )}
             </div>
           )}
 
@@ -61,6 +102,7 @@ export default function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
+              autoComplete="email"
               placeholder="email@example.com"
             />
             <Input
@@ -70,12 +112,24 @@ export default function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-              placeholder="Masukkan password"
+              autoComplete="current-password"
+              placeholder="Minimal 8 karakter"
             />
             <Button type="submit" fullWidth loading={submitting}>
               Masuk
             </Button>
           </form>
+
+          <Button
+            type="button"
+            fullWidth
+            variant="secondary"
+            icon={LogIn}
+            onClick={handleGoogle}
+            loading={googleSubmitting}
+          >
+            Masuk dengan Google
+          </Button>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -88,7 +142,7 @@ export default function LoginForm() {
 
           <Link
             to="/register"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200"
+            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer"
           >
             <span>Buat akun baru</span>
             <ArrowRight size={14} />
@@ -96,7 +150,7 @@ export default function LoginForm() {
         </Card>
 
         <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
-          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors">
+          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150 cursor-pointer">
             Kembali ke beranda
           </Link>
         </p>

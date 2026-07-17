@@ -1,6 +1,5 @@
 import { create } from 'zustand'
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, where } from 'firebase/firestore'
-import { getFirestoreDB, isConfigured } from '../services/firebase'
+import * as db from '../services/db'
 import useAuthStore from './authStore'
 
 const useSetlistStore = create((set) => ({
@@ -9,52 +8,30 @@ const useSetlistStore = create((set) => ({
   error: null,
 
   subscribe: () => {
-    if (!isConfigured()) return () => {}
     const user = useAuthStore.getState().user
     if (!user) return () => {}
 
-    const db = getFirestoreDB()
-    if (!db) return () => {}
-
     set({ loading: true })
-    const q = query(
-      collection(db, 'setlists'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    )
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const setlists = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        set({ setlists, loading: false })
-      },
-      (error) => set({ error: error.message, loading: false })
-    )
+    return db.subscribe('setlists', (items) => {
+      const setlists = items
+        .filter((s) => s.userId === user.uid)
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      set({ setlists, loading: false })
+    })
   },
 
   addSetlist: async (data) => {
     const user = useAuthStore.getState().user
-    const db = getFirestoreDB()
-    if (!user || !db) throw new Error('Not available')
-    const docRef = await addDoc(collection(db, 'setlists'), {
-      ...data,
-      userId: user.uid,
-      createdAt: new Date().toISOString(),
-    })
-    return docRef.id
+    if (!user) throw new Error('Not available')
+    return await db.addItem('setlists', { ...data, userId: user.uid, createdAt: new Date().toISOString() })
   },
 
   updateSetlist: async (id, data) => {
-    const db = getFirestoreDB()
-    if (!db) throw new Error('Not available')
-    await updateDoc(doc(db, 'setlists', id), data)
+    await db.updateItem('setlists', id, data)
   },
 
   deleteSetlist: async (id) => {
-    const db = getFirestoreDB()
-    if (!db) throw new Error('Not available')
-    await deleteDoc(doc(db, 'setlists', id))
+    await db.deleteItem('setlists', id)
   },
 
   getSetlistById: (id) => {

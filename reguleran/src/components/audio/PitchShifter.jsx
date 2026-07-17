@@ -16,6 +16,8 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
   const [audioFileName, setAudioFileName] = useState(initialName || '')
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
+  const [uploadError, setUploadError] = useState('')
+  const uploadAbortRef = useRef(false)
   const playerRef = useRef(null)
   const pitchShiftRef = useRef(null)
   const animRef = useRef(null)
@@ -42,15 +44,27 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
 
   const handleFile = async (e) => {
     const file = e.target.files?.[0]
-    if (!file || !songId) return
+
+    if (e.target) e.target.value = ''
+
+    if (!file) return
+
+    if (!songId) {
+      alert('Simpan lagu terlebih dahulu sebelum upload audio')
+      return
+    }
 
     setUploading(true)
     setUploadProgress(0)
+    setUploadError('')
+    uploadAbortRef.current = false
 
     try {
       const result = await uploadAudio(songId, file, (pct) => {
         setUploadProgress(pct)
       })
+
+      if (uploadAbortRef.current) return
 
       setAudioUrl(result.url)
       setAudioFileName(result.fileName)
@@ -69,7 +83,8 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
       setDuration(audioBuffer.duration)
       setIsLoaded(true)
     } catch (err) {
-      alert('Gagal upload audio: ' + err.message)
+      console.error('Audio upload failed:', err)
+      setUploadError('Gagal upload audio: ' + err.message)
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -216,10 +231,16 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
         </>
       )}
 
-      {!isLoaded && !audioUrl && !uploading && (
+      {!isLoaded && !audioUrl && !uploading && !uploadError && (
         <p className="text-xs text-stone-400 dark:text-stone-500">
           Audio tersimpan permanent di cloud setelah diupload
         </p>
+      )}
+
+      {uploadError && (
+        <div className="text-xs text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-md border border-red-200 dark:border-red-800">
+          {uploadError}
+        </div>
       )}
     </div>
   )

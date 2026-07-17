@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useTheme } from '../../context/ThemeContext'
 import useAuthStore from '../../stores/authStore'
+import useRoleStore from '../../stores/roleStore'
 import {
   LayoutDashboard,
   Music,
@@ -25,10 +26,19 @@ const navItems = [
   { to: '/app/schedule', icon: CalendarDays, label: 'Jadwal' },
 ]
 
+const ROLE_LABELS = {
+  guitar: 'Gitaris',
+  bass: 'Bassist',
+  keyboard: 'Keyboardist',
+  drums: 'Drummer',
+  vocal: 'Vokalis',
+}
+
 export default function Navbar() {
   const { pathname } = useLocation()
   const { theme, toggle } = useTheme()
   const { user, logout } = useAuthStore()
+  const { role } = useRoleStore()
 
   const isActive = (to) => {
     if (to === '/app') return pathname === '/app'
@@ -93,6 +103,11 @@ export default function Navbar() {
                   <span className="text-sm text-neutral-500 dark:text-neutral-400 hidden lg:block max-w-[140px] truncate">
                     {user.email}
                   </span>
+                  {role && (
+                    <span className="hidden lg:inline-flex items-center px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider rounded-md bg-neutral-200 dark:bg-neutral-700 text-neutral-600 dark:text-neutral-300">
+                      {ROLE_LABELS[role] || role}
+                    </span>
+                  )}
                   <button
                     onClick={logout}
                     className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium text-neutral-500 hover:text-neutral-700 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:text-neutral-200 dark:hover:bg-neutral-800 transition-all duration-200"

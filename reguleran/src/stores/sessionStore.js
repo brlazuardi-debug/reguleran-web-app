@@ -1,6 +1,5 @@
 import { create } from 'zustand'
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, where } from 'firebase/firestore'
-import { getFirestoreDB, isConfigured } from '../services/firebase'
+import * as db from '../services/db'
 import useAuthStore from './authStore'
 import { scheduleSessionReminder } from '../services/notification'
 
@@ -10,55 +9,33 @@ const useSessionStore = create((set, get) => ({
   error: null,
 
   subscribe: () => {
-    if (!isConfigured()) return () => {}
     const user = useAuthStore.getState().user
     if (!user) return () => {}
 
-    const db = getFirestoreDB()
-    if (!db) return () => {}
-
     set({ loading: true })
-    const q = query(
-      collection(db, 'sessions'),
-      where('userId', '==', user.uid),
-      orderBy('createdAt', 'desc')
-    )
-
-    return onSnapshot(
-      q,
-      (snapshot) => {
-        const sessions = snapshot.docs.map((d) => ({ id: d.id, ...d.data() }))
-        set({ sessions, loading: false })
-        sessions.forEach((s) => {
-          if (s.active !== false) scheduleSessionReminder(s)
-        })
-      },
-      (error) => set({ error: error.message, loading: false })
-    )
+    return db.subscribe('sessions', (items) => {
+      const sessions = items
+        .filter((s) => s.userId === user.uid)
+        .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
+      set({ sessions, loading: false })
+      sessions.forEach((s) => {
+        if (s.active !== false) scheduleSessionReminder(s)
+      })
+    })
   },
 
   addSession: async (data) => {
     const user = useAuthStore.getState().user
-    const db = getFirestoreDB()
-    if (!user || !db) throw new Error('Not available')
-    const docRef = await addDoc(collection(db, 'sessions'), {
-      ...data,
-      userId: user.uid,
-      createdAt: new Date().toISOString(),
-    })
-    return docRef.id
+    if (!user) throw new Error('Not available')
+    return await db.addItem('sessions', { ...data, userId: user.uid, createdAt: new Date().toISOString() })
   },
 
   updateSession: async (id, data) => {
-    const db = getFirestoreDB()
-    if (!db) throw new Error('Not available')
-    await updateDoc(doc(db, 'sessions', id), data)
+    await db.updateItem('sessions', id, data)
   },
 
   deleteSession: async (id) => {
-    const db = getFirestoreDB()
-    if (!db) throw new Error('Not available')
-    await deleteDoc(doc(db, 'sessions', id))
+    await db.deleteItem('sessions', id)
   },
 
   getUpcoming: () => {

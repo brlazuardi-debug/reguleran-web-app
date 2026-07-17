@@ -9,9 +9,10 @@ import { Modal } from '../components/ui/Modal'
 import { EmptyState } from '../components/ui/EmptyState'
 import { SkeletonCard } from '../components/ui/Skeleton'
 import { useToast } from '../components/ui/Toast'
+import { uploadAudio } from '../services/storage'
 
 export default function Pitchlist() {
-  const { songs, loading, subscribe, addSong } = useSongStore()
+  const { songs, loading, subscribe, addSong, updateSong } = useSongStore()
   const { transposeOffsets, setTranspose, resetAll } = usePitchlistStore()
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
@@ -26,7 +27,17 @@ export default function Pitchlist() {
   const handleAdd = async (data) => {
     setSubmitting(true)
     try {
-      await addSong(data)
+      const { audioFile, ...songData } = data
+      const songId = await addSong(songData)
+
+      if (audioFile) {
+        const result = await uploadAudio(songId, audioFile)
+        await updateSong(songId, {
+          audioUrl: result.url,
+          audioFileName: result.fileName,
+        })
+      }
+
       setShowForm(false)
       toast({ type: 'success', message: 'Lagu berhasil ditambahkan' })
     } catch (err) {
