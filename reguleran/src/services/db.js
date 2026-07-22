@@ -1,58 +1,83 @@
-import { supabase } from './supabase'
+const API = import.meta.env.VITE_API_URL || '/api'
+
+async function getToken() {
+  const session = window.Clerk?.session
+  return await session?.getToken() || null
+}
+
+async function headers() {
+  const token = await getToken()
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+  }
+}
 
 export function subscribe(collection, callback) {
-  let channel = null
-  let unsubscribed = false
+  let timer
+  let stopped = false
 
-  async function fetchAndNotify() {
-    if (unsubscribed) return
-    const { data, error } = await supabase.from(collection).select('*')
-    if (!error && data) callback(data)
+  async function poll() {
+    if (stopped) return
+    try {
+      const res = await fetch(`${API}/${collection}`, { headers: await headers() })
+      if (!stopped && res.ok) callback(await res.json())
+    } catch { /* ignore polling errors */ }
   }
 
-  fetchAndNotify()
-
-  channel = supabase.channel(`${collection}-changes`)
-  channel.on('postgres_changes', { event: '*', schema: 'public', table: collection }, () => {
-    fetchAndNotify()
-  })
-  channel.subscribe()
-
-  return () => {
-    unsubscribed = true
-    if (channel) supabase.removeChannel(channel)
-  }
+  poll()
+  timer = setInterval(poll, 10000)
+  return () => { stopped = true; clearInterval(timer) }
 }
 
 export async function addItem(collection, data) {
-  const { data: inserted, error } = await supabase.from(collection).insert(data).select().single()
-  if (error) throw error
-  return inserted.id
+  const res = await fetch(`${API}/${collection}`, {
+    method: 'POST',
+    headers: await headers(),
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(await res.text())
+  const item = await res.json()
+  return item.id
 }
 
 export async function setItem(collection, id, data) {
-  const { error } = await supabase.from(collection).upsert({ id, ...data })
-  if (error) throw error
+  const res = await fetch(`${API}/${collection}`, {
+    method: 'POST',
+    headers: await headers(),
+    body: JSON.stringify({ id, ...data }),
+  })
+  if (!res.ok) throw new Error(await res.text())
 }
 
 export async function updateItem(collection, id, data) {
-  const { error } = await supabase.from(collection).update(data).eq('id', id)
-  if (error) throw error
+  const res = await fetch(`${API}/${collection}/${id}`, {
+    method: 'PUT',
+    headers: await headers(),
+    body: JSON.stringify(data),
+  })
+  if (!res.ok) throw new Error(await res.text())
 }
 
 export async function deleteItem(collection, id) {
-  const { error } = await supabase.from(collection).delete().eq('id', id)
-  if (error) throw error
+  const res = await fetch(`${API}/${collection}/${id}`, {
+    method: 'DELETE',
+    headers: await headers(),
+  })
+  if (!res.ok) throw new Error(await res.text())
 }
 
 export async function getItem(collection, id) {
-  const { data, error } = await supabase.from(collection).select('*').eq('id', id).single()
-  if (error) return null
-  return data
+  const res = await fetch(`${API}/${collection}/${id}`, {
+    headers: await headers(),
+  })
+  if (!res.ok) return null
+  return res.json()
 }
 
 export async function queryItems(collection, predicate) {
-  const { data, error } = await supabase.from(collection).select('*')
-  if (error) return []
-  return data.filter(predicate)
+  const res = await fetch(`${API}/${collection}`, { headers: await headers() })
+  if (!res.ok) return []
+  const items = await res.json()
+  return items.filter(predicate)
 }

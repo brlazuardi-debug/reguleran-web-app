@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
-import { supabase } from './services/supabase'
+import { useAuth } from '@clerk/react'
 import useAuthStore from './stores/authStore'
 import useRoleStore from './stores/roleStore'
 import RoleOnboardingModal from './components/role/RoleOnboardingModal'
@@ -10,6 +10,7 @@ import ProtectedRoute from './components/auth/ProtectedRoute'
 import Landing from './pages/Landing'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import OAuthCallback from './pages/OAuthCallback'
 import Dashboard from './pages/Dashboard'
 import Songs from './pages/Songs'
 import SongDetail from './pages/SongDetail'
@@ -28,6 +29,31 @@ import Settings from './pages/Settings'
 import NotFound from './pages/NotFound'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
+function ClerkSync() {
+  const { isLoaded, isSignedIn, user } = useAuth()
+  const setUser = useAuthStore((s) => s.setUser)
+  const setLoading = useAuthStore((s) => s.setLoading)
+  const fetchRole = useRoleStore((s) => s.fetchRole)
+
+  useEffect(() => {
+    if (isLoaded) {
+      setUser(isSignedIn ? {
+        uid: user.id,
+        email: user.primaryEmailAddress?.emailAddress || '',
+        displayName: user.fullName || '',
+        avatarUrl: user.imageUrl || null,
+      } : null)
+      setLoading(false)
+    }
+  }, [isLoaded, isSignedIn, user, setUser, setLoading])
+
+  useEffect(() => {
+    if (isLoaded && isSignedIn) fetchRole()
+  }, [isLoaded, isSignedIn, fetchRole])
+
+  return null
+}
+
 function AppContent() {
   return (
     <ErrorBoundary>
@@ -35,6 +61,7 @@ function AppContent() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
+      <Route path="/oauth-callback" element={<OAuthCallback />} />
       <Route element={<Layout />}>
         <Route path="app" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="app/songs" element={<ProtectedRoute><Songs /></ProtectedRoute>} />
@@ -59,28 +86,9 @@ function AppContent() {
 }
 
 export default function App() {
-  const { init, user } = useAuthStore()
-  const { fetchRole } = useRoleStore()
-
-  useEffect(() => {
-    const unsub = init()
-    return () => unsub?.()
-  }, [init])
-
-  useEffect(() => {
-    if (user) {
-      fetchRole()
-    }
-  }, [user, fetchRole])
-
-  useEffect(() => {
-    supabase.from('songs').select('id').limit(1).then(({ error }) => {
-      if (error) console.warn('Supabase init:', error.message)
-    })
-  }, [])
-
   return (
     <BrowserRouter>
+      <ClerkSync />
       <RoleOnboardingModal />
       <AppContent />
     </BrowserRouter>

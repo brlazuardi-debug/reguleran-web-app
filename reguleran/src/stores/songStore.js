@@ -11,7 +11,6 @@ const useSongStore = create((set) => ({
   subscribe: () => {
     const user = useAuthStore.getState().user
     if (!user) return () => {}
-
     set({ loading: true })
     return db.subscribe('songs', (items) => {
       const songs = items
@@ -36,14 +35,14 @@ const useSongStore = create((set) => ({
     if (!user) throw new Error('Not available')
     await db.updateItem('songs', id, songData)
     if (songData.isPublic) {
-      const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+      const existing = await db.queryItems('publicSongs', (s) => s.originalSongId === id)
       if (existing.length > 0) {
         await db.updateItem('publicSongs', existing[0].id, { ...songData, sharedBy: user.uid, sharedByName: user.email })
       } else {
         await db.addItem('publicSongs', { ...songData, originalSongId: id, sharedBy: user.uid, sharedByName: user.email, createdAt: new Date().toISOString() })
       }
     } else {
-      const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+      const existing = await db.queryItems('publicSongs', (s) => s.originalSongId === id)
       for (const item of existing) {
         await db.deleteItem('publicSongs', item.id)
       }
@@ -52,7 +51,7 @@ const useSongStore = create((set) => ({
 
   deleteSong: async (id) => {
     await db.deleteItem('songs', id)
-    const existing = db.queryItems('publicSongs', (s) => s.originalSongId === id)
+    const existing = await db.queryItems('publicSongs', (s) => s.originalSongId === id)
     for (const item of existing) {
       await db.deleteItem('publicSongs', item.id)
     }

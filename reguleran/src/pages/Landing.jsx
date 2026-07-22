@@ -162,16 +162,17 @@ export default function Landing() {
               </div>
 
               <h1 className="text-4xl sm:text-5xl lg:text-6xl xl:text-7xl font-display leading-tight animate-fade-in-up animate-delay-100">
-                Kelola Live Musik
+                Satu Platform untuk
                 <br />
-                <span className="gradient-text">dengan Lebih</span>
+                <span className="gradient-text">Seluruh Ekosistem</span>
                 <br />
-                Mudah & Cepat
+                Live Music
               </h1>
 
               <p className="text-lg sm:text-xl text-white/60 max-w-lg leading-relaxed animate-fade-in-up animate-delay-200">
-                Reguleran membantu player live musik, session player, dan artis mengelola lagu, setlist,
-                dan jadwal manggung dalam satu platform yang modern dan mudah digunakan.
+                Reguleran menyatukan manajemen katalog lagu, penyusunan setlist,
+                dan sinkronisasi jadwal manggung untuk player, session musician,
+                hingga artis dalam satu ekosistem yang terintegrasi.
               </p>
 
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up animate-delay-300">

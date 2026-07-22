@@ -4,40 +4,48 @@
 - `npm run dev` — Vite dev server at localhost:5173
 - `npm run build` — production build via Vite 8 (rolldown)
 - `npm run preview` — preview production build locally
-- `npm run lint` — ESLint
+- `npm run lint` — ESLint (ignores `server/` dir)
+- **Server** (separate terminal): `cd server && npm run dev` — Hono API at localhost:3001
 
 ## Architecture
-- **React 19 + Vite 8** (rolldown, not rollup). `manualChunks` in vite.config must be a **function**, not an object.
-- **Zustand** stores call **service layer** (`services/db.js`, `services/auth.js`, `services/storage.js`). Services abstract data access — currently Supabase SDK directly.
+- **React 19 + Vite 8** (rolldown). `manualChunks` in vite.config must be a **function**, not an object.
+- **Zustand** stores call **service layer** (`services/db.js`, `services/auth.js`, `services/storage.js`). Services talk to our Hono API.
 - Each store calls `subscribe()` in a `useEffect` and returns the unsubscribe.
 - **Zustand persist** — `viewPreferencesStore.js` uses `zustand/middleware` persist (key: `reguleran-view-preferences`).
-- **Auth** Email/Password + Google Sign-In via Supabase Auth (`services/auth.js`). Store calls `init()` in `App.jsx`.
+- **Auth** Email/Password + Google Sign-In via **Clerk** (React SDK). `services/auth.js` wraps Clerk JS SDK. `App.jsx` has `<ClerkProvider>` + `<ClerkSync>`.
 - **All routes** under `/app/*` are wrapped in `ProtectedRoute` + `Layout`.
-- **Tables** (PostgreSQL via Supabase): `users`, `songs`, `setlists`, `sessions`, `publicSongs`. RLS enabled.
+- **Database**: NeonDB (PostgreSQL). Schema in `neon-migration.sql`.
 - **Song sections**: Field `sections[]` on `songs` doc — each with `{ id, label, startLine, customLabel, notes, roleNotes }`. RoleNotes field per role (`guitar`, `bass`, `keyboard`, `drums`, `vocal`) with role-specific subfields.
 - **User role**: `instrument_role` column on `users` table — values: `'guitar'|'bass'|'keyboard'|'drums'|'vocal'|null`. Read by `roleStore.fetchRole()` on auth state change.
 - **View preferences**: `showAllRoles` toggle stored in localStorage via Zustand persist.
-- **Storage**: `services/storage.js` — Supabase Storage (bucket: `audio`, public).
+- **Storage**: Audio files in **Cloudinary** (upload via unsigned preset from browser, delete via server API).
 - **PWA** via `vite-plugin-pwa` (auto service worker generation).
 - **Notifications**: `services/notification.js` — pure browser Notification API (no FCM).
 
-## Supabase Integration (Complete)
-- `services/auth.js` — Supabase Auth (signInWithPassword, signUp, signInWithOAuth Google, onAuthStateChange)
-- `services/db.js` — Supabase client (insert, update, upsert, delete, select, realtime subscriptions via `postgres_changes`)
-- `services/storage.js` — Supabase Storage (upload, getPublicUrl, remove)
-- `handle_new_user()` trigger auto-creates `users` row on Auth signup
-- RLS policies enforce per-user data isolation
+## Backend (Hono API — `server/`)
+- `server/index.js` — single-file Hono server with generic CRUD endpoints + Clerk JWT verification + Cloudinary admin API
+- `postgres.js` client for NeonDB — tagged template literal SQL
+- `@clerk/backend` — verifies `Authorization: Bearer <token>` on every request
+- `cloudinary` — Admin API for file deletion
+- camelCase ↔ snake_case conversion on all requests/responses
+- Polling-based subscribe (10s interval) replaces Supabase Realtime
+
+## NeonDB Migration
+- `neon-migration.sql` — run in NeonDB SQL Editor or psql before app works
+- `users.id` is TEXT (Clerk user ID), not UUID
+- No RLS or triggers needed (auth done via Clerk JWT + server middleware)
+- Indexes on `user_id` columns for performance
 
 ## Known Gaps
-- **snake_case mismatch**: Most stores send camelCase fields (e.g. `isPublic`) but PostgreSQL expects snake_case (`is_public`). Only `roleStore.js` has a `mapUser()` mapper. A helper in `db.js` or per-store mapper is needed.
-- **`authStore.register()` double-write**: Calls `db.setItem('users', ...)` but `handle_new_user()` trigger already inserts the row. Works via upsert but needs cleanup.
-- **`db.queryItems()`**: Uses client-side `.filter()` instead of Supabase `.eq()` filter for efficiency.
-- **Supabase `setItem` uses `upsert`**: OK for now, but should use proper `update` for existing rows.
+- **`authStore.register()` double-write**: Calls `db.setItem('users', ...)` after Clerk signup. Works via UPSERT in the server.
+- **`db.queryItems()`**: Fetches all rows then filters client-side. OK for small datasets.
+- **Polling subscribe**: 10s interval instead of realtime. Add WebSocket if latency matters.
+- **Cloudinary cleanup**: `deleteAudio()` is best-effort. Orphaned files possible.
 
 ## Gotchas
-- ESLint config is in `eslint.config.js` (flat config, v10).
+- ESLint config is in `eslint.config.js` (flat config, v10) — excludes `server/` since it's a separate Node package.
 - Tailwind uses custom monochrome palette (no brand color).
-- `.env` has both `VITE_SUPABASE_*` (client) and `SUPABASE_*` (server-only) keys.
-- Audio files stored in Supabase Storage (persistent, unlike previous Object URL approach).
-- `supabase-migration.sql` must be run manually in Supabase SQL Editor before the app works.
-- User row auto-created via trigger on `auth.users` insert — no need to create manually.
+- `.env` has `VITE_*` (client) and server-only keys — server reads from same file.
+- Server runs separately (`server/` dir, Hono on port 3001). Vite proxies `/api/*` to it in dev.
+- Clerk user IDs are strings like `user_2abc123`, not UUIDs.
+- Clerk OAuth callback page at `/oauth-callback` uses `<AuthenticateWithRedirectCallback />`.
