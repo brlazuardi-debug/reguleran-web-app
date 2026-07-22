@@ -1,185 +1,199 @@
 # Reguleran Musik
 
-> Platform manajemen musik untuk tim ibadah
-
-Kelola lagu (chord, lirik, section, role notes), setlist, sesi mingguan, jadwal kalender, audio pitch shifter, dan library publik — dalam satu platform modern, cepat, PWA-ready.
+> Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi, dan jadwal dalam satu ekosistem modern.
 
 ## Fitur
 
-- **Manajemen Lagu** — Simpan chord, lirik, nada dasar, section, dan catatan per role. Transpose otomatis dengan slider.
-- **Role-Specific View** — Pilih peran (Gitaris, Bassist, Keyboardist, Drummer, Vokalis). Tampilan dan catatan disesuaikan otomatis.
-- **Setlist + Player** — Buat setlist, urutkan lagu, atur transpose per lagu. Mode player untuk tampilan sekuensial.
-- **Sesi & Jadwal** — Atur jadwal latihan dan pelayanan mingguan. Kalender interaktif + export ICS.
+- **Manajemen Lagu** — Chord, lirik, nada dasar, section, catatan per role. Transpose otomatis.
+- **Role-Specific View** — Pilih peran (Gitar, Bass, Keyboard, Drum, Vokal). Tampilan menyesuaikan otomatis.
+- **Setlist + Player** — Buat setlist, atur transpose per lagu, mode player sekuensial.
+- **Sesi & Jadwal** — Atur jadwal latihan dan pelayanan mingguan + kalender interaktif.
 - **Pitch Shifter** — Upload audio, ubah nada real-time dengan Tone.js.
 - **Library Publik** — Bagikan dan jelajahi lagu dari player lain.
-- **PWA** — Install sebagai aplikasi, akses offline.
+- **PWA** — Install sebagai aplikasi, akses offline-ready.
 
 ## Tech Stack
 
-| Teknologi | Kegunaan |
-|---|---|
-| **React 19** | UI framework |
-| **Vite 8** (rolldown) | Build tool |
-| **Supabase** | Auth, PostgreSQL, Storage, Realtime |
-| **Zustand 5** | State management |
-| **Tailwind CSS 3** | Styling (monochrome palette, dark mode) |
-| **React Router 7** | Routing |
-| **Tone.js 15** | Audio / Pitch Shifter |
-| **Lucide React** | Ikon |
-| **React Leaflet** | Peta interaktif |
-| **vite-plugin-pwa** | PWA + service worker |
+| Layer | Teknologi |
+|-------|-----------|
+| Frontend | React 19 + Vite 8 (rolldown) + Tailwind CSS 3 |
+| Auth | Clerk (Email/Password + Google OAuth) |
+| Database | NeonDB (PostgreSQL) |
+| Backend API | Hono 4 (Node.js) |
+| File Storage | Cloudinary |
+| State | Zustand 5 |
+| Audio | Tone.js 15 |
+| Routing | React Router 7 |
 
 ## Struktur Proyek
 
 ```
 reguleran/
-├── public/                  # Favicon, PWA icons
+├── server/                   # Hono API (backend)
+│   └── index.js              # CRUD endpoints + Clerk JWT + Cloudinary admin
 ├── src/
 │   ├── components/
-│   │   ├── auth/            # LoginForm, RegisterForm, ProtectedRoute
-│   │   ├── audio/           # PitchShifter (Tone.js)
-│   │   ├── layout/          # Navbar, Sidebar, Layout
-│   │   ├── location/        # MapPicker (Leaflet)
-│   │   ├── pitchlist/       # PitchCard
-│   │   ├── role/            # RoleOnboardingModal, RoleBadge
-│   │   ├── schedule/        # CalendarView
-│   │   ├── sessions/        # SessionCard, SessionForm
-│   │   ├── setlists/        # SetlistCard, SetlistForm, SongPicker, SetlistPlayer
-│   │   ├── songs/           # SongCard, SongForm, ChordDisplay, TransposeSlider,
-│   │   │                    # SongSectionBadge, SongSectionEditor, RoleSpecificPanel
-│   │   ├── tabs/            # TabViewer (ASCII guitar/bass tabs)
-│   │   └── ui/              # Button, Card, Badge, Modal, Tabs, Toast, Spinner,
-│   │                        # Skeleton, EmptyState, Input, Select, Textarea, Toggle,
-│   │                        # ConfirmDialog, ErrorBoundary
-│   ├── hooks/               # useActiveRole
-│   ├── pages/               # 17 route pages (lihat Routes)
-│   ├── services/            # supabase.js, auth.js, db.js, storage.js, notification.js
-│   ├── stores/              # Zustand stores (auth, song, setlist, session, role,
-│   │                        # library, pitchlist, viewPreferences)
-│   ├── utils/               # transpose.js, calendar.js
-│   ├── App.jsx              # Routes + ErrorBoundary
-│   ├── main.jsx             # Entry point
-│   └── index.css            # Global styles
-├── .env                     # Supabase credentials
-├── supabase-migration.sql   # PostgreSQL schema + RLS + triggers
-├── tailwind.config.js       # Monochrome palette, animations, fonts
-├── vite.config.js           # Vite + PWA config
+│   │   ├── auth/             # LoginForm, RegisterForm, ProtectedRoute
+│   │   ├── audio/            # PitchShifter (Tone.js)
+│   │   ├── layout/           # Navbar, Sidebar, Layout
+│   │   ├── location/         # MapPicker (Leaflet)
+│   │   ├── pitchlist/        # PitchCard
+│   │   ├── role/             # RoleOnboardingModal, RoleBadge
+│   │   ├── schedule/         # CalendarView
+│   │   ├── sessions/         # SessionCard, SessionForm
+│   │   ├── setlists/         # SetlistCard, SetlistForm, SongPicker, SetlistPlayer
+│   │   ├── songs/            # SongCard, SongForm, ChordDisplay, TransposeSlider,
+│   │   │                     # SongSectionBadge, SongSectionEditor, RoleSpecificPanel
+│   │   ├── tabs/             # TabViewer (ASCII guitar/bass tabs)
+│   │   └── ui/               # Button, Card, Badge, Modal, Tabs, Toast, Spinner,
+│   │                         # Skeleton, EmptyState, Input, Select, Textarea, Toggle,
+│   │                         # ConfirmDialog, ErrorBoundary
+│   ├── hooks/                # useActiveRole
+│   ├── pages/                # 18 route pages (termasuk OAuthCallback)
+│   ├── services/             # db.js, auth.js, storage.js, notification.js
+│   ├── stores/               # Zustand stores
+│   ├── utils/                # transpose.js, calendar.js
+│   ├── App.jsx               # Routes + ErrorBoundary + ClerkSync
+│   ├── main.jsx              # Entry + ClerkProvider
+│   └── index.css             # Global styles
+├── neon-migration.sql        # PostgreSQL schema
+├── .env                      # Credentials
+├── railwal.json              # Railway deploy config
+├── vercel.json               # Vercel deploy config
+├── vite.config.js            # Vite + PWA + API proxy
 └── package.json
 ```
 
-## Routes
-
-| Path | Page | Auth |
-|------|------|------|
-| `/` | Landing | Publik |
-| `/login` | Login | Publik |
-| `/register` | Register | Publik |
-| `/app` | Dashboard | Protected |
-| `/app/songs` | Katalog Lagu | Protected |
-| `/app/songs/new` | Tambah Lagu | Protected |
-| `/app/songs/:id` | Detail Lagu | Protected |
-| `/app/songs/:id/edit` | Edit Lagu | Protected |
-| `/app/setlists` | Setlist | Protected |
-| `/app/setlists/:id` | Detail Setlist | Protected |
-| `/app/setlists/:id/edit` | Edit Setlist | Protected |
-| `/app/sessions` | Sesi | Protected |
-| `/app/sessions/:id` | Detail Sesi | Protected |
-| `/app/sessions/:id/edit` | Edit Sesi | Protected |
-| `/app/pitchlist` | Pitchlist | Protected |
-| `/app/library` | Library Publik | Protected |
-| `/app/schedule` | Jadwal | Protected |
-| `/app/settings` | Pengaturan | Protected |
-| `*` | 404 | Publik |
-
-## Memulai
-
-### Prasyarat
+## Prasyarat
 
 - Node.js 20+
 - npm 10+
-- Supabase project ([dashboard](https://supabase.com/dashboard))
+- Akun [Clerk](https://dashboard.clerk.com)
+- Project [NeonDB](https://console.neon.tech)
+- Akun [Cloudinary](https://cloudinary.com/console)
 
-### Instalasi
+## Instalasi
 
 ```bash
 cd reguleran
 npm install
 ```
 
-### Supabase Setup
+### 1. Setup Database (NeonDB)
 
-1. Buka [Supabase Dashboard](https://supabase.com/dashboard/project/ynsgcrctpamllntcrbjj) → Project Settings → API
-2. Copy `Project URL` dan `anon public key` ke `.env`
-3. SQL Editor → buka `supabase-migration.sql` → Execute
-4. **Authentication** → Providers → enable **Email** + **Google** (isi Client ID & Secret)
-5. **Authentication** → Settings → set **Site URL** ke `http://localhost:5173`
-6. **Storage** → Create bucket → nama: `audio`, Public bucket: ON
-7. Storage → `audio` bucket → Policies → tambah:
-   - `SELECT` → `true` (public read)
-   - `INSERT/UPDATE/DELETE` → `auth.role() = 'authenticated'`
+1. Buka [Neon Console](https://console.neon.tech) → Create project
+2. Copy connection string ke `.env` → `DATABASE_URL`
+3. Buka Neon SQL Editor → paste `neon-migration.sql` → Run
 
-### Development
+### 2. Setup Auth (Clerk)
 
 ```bash
+npm install -g clerk
+clerk auth login                 # Login ke Clerk
+clerk init --app <app_id>        # Init project (set env vars)
+clerk doctor                     # Verifikasi
+```
+
+Atau manual: copy `VITE_CLERK_PUBLISHABLE_KEY` dan `CLERK_SECRET_KEY` dari [Clerk Dashboard](https://dashboard.clerk.com) ke `.env`.
+
+### 3. Setup Storage (Cloudinary)
+
+1. Buka [Cloudinary Console](https://console.cloudinary.com)
+2. Dashboard → copy **Cloud Name** → `.env` `VITE_CLOUDINARY_CLOUD_NAME`
+3. Settings → **Upload** → Add preset `reguleran_audio` (unsigned) → `.env` `VITE_CLOUDINARY_UPLOAD_PRESET`
+4. Settings → **API Keys** → copy API Key + Secret → `.env`
+
+### 4. Jalankan
+
+**Terminal 1 — Backend API:**
+```bash
+cd server
+npm install
 npm run dev
-# Buka http://localhost:5173
+# Hono API at http://localhost:3001
 ```
 
-### Build
+**Terminal 2 — Frontend:**
+```bash
+cd reguleran
+npm run dev
+# Vite at http://localhost:5173
+```
+
+## Production Deploy
+
+### Backend (Railway)
 
 ```bash
-npm run build
-npm run preview
+# Push ke GitHub, lalu di Railway:
+# New Project → Deploy from GitHub
+# Root Directory: reguleran/server
+# Set env vars (CORS_ORIGIN, CLERK_SECRET_KEY, DATABASE_URL, CLOUDINARY_*)
 ```
 
-## Scripts
+### Frontend (Vercel)
 
-| Perintah | Deskripsi |
-|---|---|
-| `npm run dev` | Dev server |
-| `npm run build` | Build production |
-| `npm run preview` | Preview build |
-| `npm run lint` | ESLint |
+```bash
+# New Project → Import GitHub repo
+# Root Directory: reguleran
+# Build: npm run build
+# Output: dist
+# Set env vars (VITE_CLERK_PUBLISHABLE_KEY, VITE_API_URL, VITE_CLOUDINARY_*)
+```
 
-## Database (PostgreSQL via Supabase)
+### Clerk Production
 
-Lihat `supabase-migration.sql` untuk schema lengkap.
+Di [Clerk Dashboard](https://dashboard.clerk.com):
+1. Switch Development → **Production**
+2. Copy `pk_live_*` dan `sk_live_*` ke env vars
+3. Tambah redirect URL: `https://domain.com/oauth-callback`
+
+## Database Schema
+
+Lihat `neon-migration.sql` untuk schema lengkap.
 
 **Tables**: `users`, `songs`, `setlists`, `sessions`, `public_songs`
 
 **Key points**:
-- `users.id` = FK ke `auth.users(id)` dengan trigger `handle_new_user()` auto-create baris saat signup
-- RLS diaktifkan di semua tabel — kebijakan berbasis `auth.uid()`
+- `users.id` = TEXT (Clerk user ID)
+- Auth via Clerk JWT + server middleware (no RLS)
 - `songs.sections` JSONB — array section dengan roleNotes per role
 - `setlists.songs` JSONB — array `{ songId, transpose, order }`
-- `sessions.location` JSONB — `{ venue, address, contactPerson, phone, locationNotes }`
+- Indexes on `user_id` columns untuk performa
 
-### Song Section Schema
+## Scripts
 
-```js
-{
-  id: string,
-  label: 'intro' | 'verse' | 'chorus' | 'bridge' | 'ending' | 'outro' | 'interlude',
-  startLine: number,        // baris lirik (0-indexed)
-  customLabel?: string,
-  notes?: string,
-  roleNotes?: {
-    guitar?:  { chordVoicing, notes, tabReference },
-    bass?:    { notes, tabReference },
-    keyboard?:{ chordVoicing, notes },
-    drums?:   { pattern, notes, dynamics: 'soft'|'medium'|'loud' },
-    vocal?:   { harmony, notes, breathMarks: number[] }
-  }
-}
-```
+| Perintah | Lokasi | Deskripsi |
+|----------|--------|-----------|
+| `npm run dev` | `reguleran/` | Vite dev server |
+| `npm run build` | `reguleran/` | Build production |
+| `npm run lint` | `reguleran/` | ESLint |
+| `npm run dev` | `reguleran/server/` | Hono API (--watch) |
+| `npm run start` | `reguleran/server/` | Hono API production |
+
+## API Endpoints
+
+Semua endpoint via `http://localhost:3001/api` (dev) atau production URL.
+
+| Method | Path | Deskripsi |
+|--------|------|-----------|
+| GET | `/api/health` | Health check |
+| GET | `/api/:collection` | List items (user-scoped) |
+| GET | `/api/:collection/:id` | Get item by ID |
+| POST | `/api/:collection` | Create/Upsert item |
+| PUT | `/api/:collection/:id` | Update item |
+| DELETE | `/api/:collection/:id` | Delete item |
+| DELETE | `/api/audio/:publicId` | Delete Cloudinary audio |
+
+Auth: `Authorization: Bearer <clerk_session_token>`
 
 ## Catatan
 
-- Semua interaksi database via service layer (`services/db.js`) — siap untuk diganti implementasinya tanpa sentuh store
-- `viewPreferencesStore` persist ke localStorage via Zustand persist middleware
-- PWA auto-update (service worker regenerate tiap build)
-- Audio file disimpan di Supabase Storage bucket `audio`
-- Notifikasi browser via `services/notification.js` (Notification API, tanpa FCM)
+- Clerk user IDs format `user_2abc123` (string, bukan UUID)
+- `.env` gitignored — jangan commit credentials
+- Vite proxy `/api/*` → `localhost:3001` di dev
+- Polling 10s untuk data updates (ganti WebSocket jika perlu latensi rendah)
+- PWA auto-update via service worker
 
 ## Lisensi
 
