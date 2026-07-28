@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Music, ArrowRight, LogIn, RefreshCw } from 'lucide-react'
+import { useAuth } from '@clerk/react'
 import useAuthStore from '../../stores/authStore'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -16,6 +17,11 @@ export default function LoginForm() {
   const [googleSubmitting, setGoogleSubmitting] = useState(false)
   const { login, googleLogin, error } = useAuthStore()
   const navigate = useNavigate()
+
+  const { isLoaded: clerkLoaded, isSignedIn } = useAuth()
+  useEffect(() => {
+    if (clerkLoaded && isSignedIn) navigate('/app', { replace: true })
+  }, [clerkLoaded, isSignedIn, navigate])
 
   const isNetworkError = (error || localError)?.toLowerCase().includes('koneksi')
 

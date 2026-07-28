@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Edit3, Trash2, CalendarCheck, MapPin, Clock, Music, Phone, User, FileText } from 'lucide-react'
+import { ArrowLeft, Edit3, Trash2, CalendarCheck, MapPin, Clock, Music, Phone, User, FileText, Mic } from 'lucide-react'
 import useSessionStore from '../stores/sessionStore'
 import useSetlistStore from '../stores/setlistStore'
 import { DAY_NAMES } from '../utils/transpose'
@@ -78,7 +78,10 @@ export default function SessionDetail() {
               {daysUntil === 0 ? 'Hari ini' : `${daysUntil} hari lagi`}
             </Badge>
           </div>
-          <div className="flex gap-2 shrink-0">
+          <div className="flex gap-2 shrink-0 flex-wrap justify-end">
+            <Button variant="secondary" size="sm" icon={Mic} onClick={() => navigate(`/app/sessions/${id}/rider`)}>
+              Rider & RAB
+            </Button>
             <Button variant="secondary" size="sm" onClick={toggleActive}>
               {session.active !== false ? 'Nonaktifkan' : 'Aktifkan'}
             </Button>

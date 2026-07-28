@@ -1,154 +1,96 @@
-# Reguleran Musik
+# Reguleran
 
-> Platform manajemen musik 
-
-Reguleran membantu tim musik mengelola lagu, setlist, dan jadwal latihan dalam satu platform yang modern, cepat, dan mudah digunakan.
-
-## Fitur
-
-- **Manajemen Lagu** — Simpan chord, lirik, dan nada dasar. Transpose otomatis dengan slider.
-- **Setlist Cerdas** — Buat setlist untuk setiap ibadah. Urutkan, edit, dan atur nada dasar per lagu.
-- **Sesi & Jadwal** — Atur jadwal latihan dan pelayanan mingguan dengan kalender interaktif.
-- **Pitch Shifter** — Ubah nada audio langsung dari browser (Web Audio API).
-- **Lokasi** — Tandai lokasi venue dengan peta interaktif (Leaflet).
-- **Autentikasi** — Login/register dengan Firebase Auth.
-- **Monochrome Theme** — Tampilan elegan dengan dark mode dan light mode.
-- **Responsif** — Mobile-first, berfungsi sempurna di semua perangkat.
+Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi mingguan, jadwal kalender, dan dokumen manggung. Web + Mobile.
 
 ## Tech Stack
 
-| Teknologi | Kegunaan |
-|---|---|
-| **React 19** | UI framework |
-| **Vite 8** | Build tool |
-| **Tailwind CSS 3** | Styling |
-| **Firebase** | Auth, Firestore (backend) |
-| **Zustand** | State management |
-| **React Router 7** | Routing |
-| **React Leaflet** | Peta interaktif |
-| **Tone.js** | Audio / Pitch Shifter |
-| **Lucide React** | Ikon |
+| Layer | Web | Mobile |
+|-------|-----|--------|
+| **Frontend** | React 19 + Vite 8 (rolldown) + Tailwind CSS 3 | React Native + Expo SDK 57 + NativeWind |
+| **State** | Zustand 5 | Zustand 5 |
+| **Auth** | Clerk (`@clerk/react` v6) | Clerk (`@clerk/clerk-expo` v2) |
+| **Database** | NeonDB (PostgreSQL) via `postgres.js` | via Hono API (sama) |
+| **API Server** | Hono 4 — `server/index.js` | via Hono API (sama) |
+| **Storage** | Cloudinary (unsigned upload + Admin API delete) | via Hono API (sama) |
+| **Audio** | Tone.js 15 (pitch shifting via Web Audio API) | expo-av (playback only) |
+| **Routing** | React Router 7 | Expo Router (file-based) + Drawer |
+| **Icons** | Lucide React | lucide-react-native |
 
-## Struktur Proyek
+## Architecture
 
 ```
 reguleran/
-├── public/               # Aset statis (favicon, icons)
-├── src/
-│   ├── components/
-│   │   ├── auth/         # Login & Register form
-│   │   ├── audio/        # Pitch Shifter
-│   │   ├── layout/       # Navbar, Layout
-│   │   ├── location/     # Map Picker
-│   │   ├── schedule/     # Calendar View
-│   │   ├── sessions/     # Session Card & Form
-│   │   ├── setlists/     # Setlist Card, Form, SongPicker
-│   │   ├── songs/        # Song Card, Form, ChordDisplay, TransposeSlider
-│   │   └── ui/           # Button, Card, Badge, Modal, Toast, dll
-│   ├── pages/            # Landing, Dashboard, Songs, Setlists, Sessions, dll
-│   ├── stores/           # Zustand stores (auth, song, setlist, session)
-│   ├── services/         # Firebase init, notification
-│   ├── utils/            # Chord transpose utility
-│   ├── App.jsx           # Route definitions
-│   ├── main.jsx          # Entry point
-│   └── index.css         # Global styles, utility classes
-├── .env                  # Firebase credentials (VITE_*)
-├── tailwind.config.js    # Monochrome palette, animations, fonts
-├── vite.config.js        # Vite configuration
-├── index.html            # HTML entry
+├── server/                 # Hono API (Node.js) — shared backend
+│   └── index.js            # CRUD endpoints + Clerk JWT + Cloudinary admin
+├── src/                    # Web App (React 19 + Vite 8)
+│   ├── services/           # db.js, auth.js, storage.js, notification.js
+│   ├── stores/             # Zustand stores
+│   ├── components/         # UI + feature components
+│   ├── pages/              # All route pages
+│   ├── hooks/              # Custom hooks
+│   ├── utils/              # transpose.js, calendar.js, formatDate.js
+│   ├── types/              # TypeScript type definitions
+│   ├── App.jsx             # Routes + ErrorBoundary + ClerkSync
+│   └── main.jsx            # Entry + ClerkProvider
+├── mobile/                 # Mobile App (React Native + Expo SDK 57)
+│   ├── app/                # Expo Router (file-based routing)
+│   │   ├── _layout.tsx     # ClerkProvider + auth guard
+│   │   ├── (auth)/         # login, register
+│   │   └── (app)/          # Drawer nav: Dashboard, Lagu, Setlist, Jadwal, ...
+│   ├── components/         # UI + feature components
+│   ├── stores/             # Zustand stores
+│   ├── services/           # api.ts, auth.ts, cloudinary.ts, tokenCache.ts
+│   ├── hooks/              # useApi.ts, useActiveRole.ts
+│   ├── utils/              # transpose.ts
+│   └── types/              # TypeScript types
+├── neon-migration.sql      # PostgreSQL schema (NeonDB)
+├── vite.config.js          # Vite + PWA + API proxy
 └── package.json
 ```
 
-## Memulai
+## Features
 
-### Prasyarat
+- **Songs** — Chord, lirik, section management, transpose, role-specific notes
+- **Setlists** — Drag-reorder songs with transpose per song, sequential player
+- **Sessions** — Recurring weekly schedules, location, setlist linking, ICS export
+- **Audio Pitch Shifter** — Tone.js-powered pitch shifting with Cloudinary upload
+- **Public Library** — Share songs publicly across users
+- **Dashboard** — Upcoming sessions, quick stats, tools hub
+- **Role Views** — Filter chord display by instrument role (guitar, bass, keyboard, drums, vocal)
+- **Proposals** — Booking proposal documents (PDF) for venues
+- **Rider + RAB** — Technical rider and budget breakdown per event session
 
-- Node.js 20+
-- npm 10+
-- Firebase project (Auth + Firestore)
+## Commands
 
-### Instalasi
-
+### Web App (from `reguleran/`)
 ```bash
-# Clone repo
-git clone <repo-url>
-cd reguleran
-
-# Install dependencies
-npm install
-
-# Konfigurasi Firebase
-cp .env.example .env   # atau edit .env langsung
-# Isi dengan kredensial Firebase project kamu
+npm run dev          # Vite dev server at localhost:5173
+npm run build        # Production build
+npm run preview      # Preview production build
+npm run lint         # ESLint (flat config)
 ```
 
-### Firebase Setup
-
-1. Buka [Firebase Console](https://console.firebase.google.com)
-2. Buat project baru atau pilih yang sudah ada
-3. Enable **Authentication** → Sign-in method → Email/Password
-4. Buat **Cloud Firestore** database
-5. Register **Web App** untuk mendapatkan konfigurasi
-6. Copy konfigurasi ke `.env` dengan prefix `VITE_FIREBASE_*`
-
-Contoh `.env`:
-
-```env
-VITE_FIREBASE_API_KEY=AIzaSy...
-VITE_FIREBASE_AUTH_DOMAIN=your-project.firebaseapp.com
-VITE_FIREBASE_PROJECT_ID=your-project
-VITE_FIREBASE_STORAGE_BUCKET=your-project.appspot.com
-VITE_FIREBASE_MESSAGING_SENDER_ID=123456789
-VITE_FIREBASE_APP_ID=1:123456789:web:abc123
-```
-
-### Development
-
+### Server (from `reguleran/server`)
 ```bash
-npm run dev
+npm run dev          # Hono API at localhost:3001
+npm start            # Production start
 ```
 
-Buka `http://localhost:5173` di browser.
-
-### Production Build
-
+### Mobile App (from `reguleran/mobile/`)
 ```bash
-npm run build
-npm run preview
+npx expo start       # Expo dev server (scan QR with Expo Go)
+npx expo start --android  # Open directly in Android emulator
+npx tsc --noEmit     # TypeScript check (zero errors required)
 ```
 
-## Scripts
+## Database
 
-| Perintah | Deskripsi |
-|---|---|
-| `npm run dev` | Jalankan dev server |
-| `npm run build` | Build untuk production |
-| `npm run preview` | Preview build |
-| `npm run lint` | Lint semua file |
+NeonDB (PostgreSQL). Run `neon-migration.sql` in NeonDB SQL Editor before first use.
 
-## Firestore Collection Structure
+No RLS — auth is handled via Clerk JWT verification in the Hono middleware.
 
-```
-songs/           → { title, artist, key, lyrics, createdAt, updatedAt }
-setlists/        → { name, description, songs: [{songId, transpose, order}], createdAt }
-sessions/        → { name, day, time, setlistId, location: {venue, address, lat, lng}, active }
-```
+## Production Deploy
 
-## Izin
-
-```
-firebase.rules  → Deny all by default — perlu diupdate untuk production
-```
-
-## Deployment
-
-1. Build project: `npm run build`
-2. Deploy ke Firebase Hosting (atau static host lain):
-
-```bash
-firebase deploy --only hosting
-```
-
-## Lisensi
-
-MIT
+- **Backend (Railway):** Import repo → Root: `reguleran/server` → Set env vars → Deploy
+- **Frontend (Vercel):** Import repo → Root: `reguleran` → Set VITE_* env vars → Deploy
+- **Mobile (EAS):** `eas build --platform android --profile production` → Upload AAB to Play Console

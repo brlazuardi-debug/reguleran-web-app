@@ -1,6 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Music, ArrowRight, UserPlus, User } from 'lucide-react'
+import { useAuth } from '@clerk/react'
 import useAuthStore from '../../stores/authStore'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -18,6 +19,11 @@ export default function RegisterForm() {
   const [googleSubmitting, setGoogleSubmitting] = useState(false)
   const { register, googleLogin, error } = useAuthStore()
   const navigate = useNavigate()
+
+  const { isLoaded: clerkLoaded, isSignedIn } = useAuth()
+  useEffect(() => {
+    if (clerkLoaded && isSignedIn) navigate('/app', { replace: true })
+  }, [clerkLoaded, isSignedIn, navigate])
 
   const handleSubmit = async (e) => {
     e.preventDefault()

@@ -26,6 +26,11 @@ import Pitchlist from './pages/Pitchlist'
 import Library from './pages/Library'
 import Schedule from './pages/Schedule'
 import Settings from './pages/Settings'
+import BandProfilePage from './pages/BandProfilePage'
+import EventDocumentPage from './pages/EventDocumentPage'
+import ProposalListPage from './pages/ProposalListPage'
+import ProposalDetailPage from './pages/ProposalDetailPage'
+import ProposalEditorPage from './pages/ProposalEditorPage'
 import NotFound from './pages/NotFound'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
@@ -78,6 +83,12 @@ function AppContent() {
         <Route path="app/library" element={<ProtectedRoute><Library /></ProtectedRoute>} />
         <Route path="app/schedule" element={<ProtectedRoute><Schedule /></ProtectedRoute>} />
         <Route path="app/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
+        <Route path="app/band-profile" element={<ProtectedRoute><BandProfilePage /></ProtectedRoute>} />
+        <Route path="app/sessions/:sessionId/rider" element={<ProtectedRoute><EventDocumentPage /></ProtectedRoute>} />
+        <Route path="app/proposals" element={<ProtectedRoute><ProposalListPage /></ProtectedRoute>} />
+        <Route path="app/proposals/new" element={<ProtectedRoute><ProposalEditorPage /></ProtectedRoute>} />
+        <Route path="app/proposals/:id" element={<ProtectedRoute><ProposalDetailPage /></ProtectedRoute>} />
+        <Route path="app/proposals/:id/edit" element={<ProtectedRoute><ProposalEditorPage /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
