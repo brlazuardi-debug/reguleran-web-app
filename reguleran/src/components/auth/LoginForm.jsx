@@ -1,67 +1,65 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, Music, ArrowRight, LogIn, RefreshCw } from 'lucide-react'
-import { useAuth } from '@clerk/react'
-import useAuthStore from '../../stores/authStore'
+import { Mail, Lock, Music, ArrowRight, LogIn } from 'lucide-react'
+import { useSignIn, useAuth } from '@clerk/react'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
 
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-
 export default function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const [localError, setLocalError] = useState('')
+  const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [googleSubmitting, setGoogleSubmitting] = useState(false)
-  const { login, googleLogin, error } = useAuthStore()
+  const { signIn, isLoaded: signInLoaded } = useSignIn()
+  const { isLoaded, isSignedIn } = useAuth()
   const navigate = useNavigate()
 
-  const { isLoaded: clerkLoaded, isSignedIn } = useAuth()
   useEffect(() => {
-    if (clerkLoaded && isSignedIn) navigate('/app', { replace: true })
-  }, [clerkLoaded, isSignedIn, navigate])
+    if (isLoaded && isSignedIn) navigate('/app', { replace: true })
+  }, [isLoaded, isSignedIn, navigate])
 
-  const isNetworkError = (error || localError)?.toLowerCase().includes('koneksi')
+  if (!isLoaded || !signInLoaded) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLocalError('')
+    setError('')
 
-    if (!EMAIL_RE.test(email)) {
-      setLocalError('Format email tidak valid')
-      return
-    }
-    if (password.length < 8) {
-      setLocalError('Password minimal 8 karakter')
-      return
-    }
+    if (!email.includes('@')) { setError('Format email tidak valid'); return }
+    if (password.length < 8) { setError('Password minimal 8 karakter'); return }
 
     setSubmitting(true)
     try {
-      await login(email, password)
-      navigate('/app')
-    } catch {
-      // error handled by store
+      const result = await signIn.create({ identifier: email, password })
+      if (result.status === 'complete') {
+        await signIn.setActive({ session: result.createdSessionId })
+        navigate('/app')
+      } else {
+        setError('Verifikasi diperlukan')
+      }
+    } catch (err) {
+      const msg = err.errors?.[0]?.message || err.message || 'Terjadi kesalahan'
+      if (msg.toLowerCase().includes('invalid') || msg.toLowerCase().includes('password')) {
+        setError('Email atau password salah')
+      } else if (msg.toLowerCase().includes('not found')) {
+        setError('Akun tidak ditemukan')
+      } else if (msg.toLowerCase().includes('rate limit')) {
+        setError('Terlalu banyak percobaan. Coba beberapa saat lagi.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleGoogle = async () => {
-    setGoogleSubmitting(true)
-    try {
-      await googleLogin()
-      navigate('/app')
-    } catch {
-      // error handled by store
-    } finally {
-      setGoogleSubmitting(false)
-    }
+  const handleGoogle = () => {
+    signIn.authenticateWithRedirect({
+      strategy: 'oauth_google',
+      redirectUrl: '/oauth-callback',
+      redirectUrlComplete: '/app',
+    })
   }
-
-  const displayError = localError || error
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#0a0a0a]">
@@ -78,64 +76,23 @@ export default function LoginForm() {
             </div>
           </Link>
           <h1 className="text-2xl font-display text-neutral-900 dark:text-white">Masuk</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">
-            Selamat datang kembali di Reguleran
-          </p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">Selamat datang kembali di Reguleran</p>
         </div>
 
         <Card variant="glass" className="space-y-5">
-          {displayError && (
-            <div className="flex items-center gap-2 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
-              <span className="flex-1">{displayError}</span>
-              {isNetworkError && (
-                <button
-                  type="button"
-                  onClick={handleSubmit}
-                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors duration-150 cursor-pointer"
-                >
-                  <RefreshCw size={12} />
-                  Coba Lagi
-                </button>
-              )}
+          {error && (
+            <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Email"
-              type="email"
-              icon={Mail}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="email@example.com"
-            />
-            <Input
-              label="Password"
-              type="password"
-              icon={Lock}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="current-password"
-              placeholder="Minimal 8 karakter"
-            />
-            <Button type="submit" fullWidth loading={submitting}>
-              Masuk
-            </Button>
+            <Input label="Email" type="email" icon={Mail} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="email@example.com" />
+            <Input label="Password" type="password" icon={Lock} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" placeholder="Minimal 8 karakter" />
+            <Button type="submit" fullWidth loading={submitting}>Masuk</Button>
           </form>
 
-          <Button
-            type="button"
-            fullWidth
-            variant="secondary"
-            icon={LogIn}
-            onClick={handleGoogle}
-            loading={googleSubmitting}
-          >
-            Masuk dengan Google
-          </Button>
+          <Button type="button" fullWidth variant="secondary" icon={LogIn} onClick={handleGoogle}>Masuk dengan Google</Button>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -146,19 +103,14 @@ export default function LoginForm() {
             </div>
           </div>
 
-          <Link
-            to="/register"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer"
-          >
+          <Link to="/register" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200">
             <span>Buat akun baru</span>
             <ArrowRight size={14} />
           </Link>
         </Card>
 
         <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
-          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150 cursor-pointer">
-            Kembali ke beranda
-          </Link>
+          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150">Kembali ke beranda</Link>
         </p>
       </div>
     </div>

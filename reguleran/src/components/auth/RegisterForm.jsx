@@ -1,71 +1,72 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Music, ArrowRight, UserPlus, User } from 'lucide-react'
-import { useAuth } from '@clerk/react'
-import useAuthStore from '../../stores/authStore'
+import { useSignUp, useAuth } from '@clerk/react'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function RegisterForm() {
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirm, setConfirm] = useState('')
-  const [localError, setLocalError] = useState('')
+  const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [googleSubmitting, setGoogleSubmitting] = useState(false)
-  const { register, googleLogin, error } = useAuthStore()
+  const { signUp, isLoaded: signUpLoaded } = useSignUp()
+  const { isLoaded, isSignedIn } = useAuth()
   const navigate = useNavigate()
 
-  const { isLoaded: clerkLoaded, isSignedIn } = useAuth()
   useEffect(() => {
-    if (clerkLoaded && isSignedIn) navigate('/app', { replace: true })
-  }, [clerkLoaded, isSignedIn, navigate])
+    if (isLoaded && isSignedIn) navigate('/app', { replace: true })
+  }, [isLoaded, isSignedIn, navigate])
+
+  if (!isLoaded || !signUpLoaded) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    setLocalError('')
+    setError('')
 
-    if (!EMAIL_RE.test(email)) {
-      setLocalError('Format email tidak valid')
-      return
-    }
-    if (password.length < 8) {
-      setLocalError('Password minimal 8 karakter')
-      return
-    }
-    if (password !== confirm) {
-      setLocalError('Password tidak cocok')
-      return
-    }
+    if (!email.includes('@')) { setError('Format email tidak valid'); return }
+    if (password.length < 8) { setError('Password minimal 8 karakter'); return }
+    if (password !== confirm) { setError('Password tidak cocok'); return }
 
     setSubmitting(true)
     try {
-      await register(email, password, displayName)
-      navigate('/app')
-    } catch {
-      // error handled by store
+      const result = await signUp.create({
+        emailAddress: email,
+        password,
+        firstName: displayName || email.split('@')[0],
+      })
+      if (result.status === 'complete') {
+        await signUp.setActive({ session: result.createdSessionId })
+        navigate('/app')
+      } else {
+        setError('Verifikasi email diperlukan. Cek inbox Anda.')
+      }
+    } catch (err) {
+      const msg = err.errors?.[0]?.message || err.message || 'Terjadi kesalahan'
+      if (msg.toLowerCase().includes('already exists') || msg.toLowerCase().includes('already in use')) {
+        setError('Email sudah terdaftar')
+      } else if (msg.toLowerCase().includes('weak')) {
+        setError('Password terlalu lemah')
+      } else if (msg.toLowerCase().includes('rate limit')) {
+        setError('Terlalu banyak percobaan. Coba beberapa saat lagi.')
+      } else {
+        setError(msg)
+      }
     } finally {
       setSubmitting(false)
     }
   }
 
-  const handleGoogle = async () => {
-    setGoogleSubmitting(true)
-    try {
-      await googleLogin()
-      navigate('/app')
-    } catch {
-      // error handled by store
-    } finally {
-      setGoogleSubmitting(false)
-    }
+  const handleGoogle = () => {
+    signUp.authenticateWithRedirect({
+      strategy: 'oauth_google',
+      redirectUrl: '/oauth-callback',
+      redirectUrlComplete: '/app',
+    })
   }
-
-  const displayError = localError || error
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#0a0a0a]">
@@ -82,73 +83,25 @@ export default function RegisterForm() {
             </div>
           </Link>
           <h1 className="text-2xl font-display text-neutral-900 dark:text-white">Daftar</h1>
-          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">
-            Buat akun baru Reguleran
-          </p>
+          <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">Buat akun baru Reguleran</p>
         </div>
 
         <Card variant="glass" className="space-y-5">
-          {displayError && (
+          {error && (
             <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
-              {displayError}
+              {error}
             </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            <Input
-              label="Nama Lengkap"
-              type="text"
-              icon={User}
-              value={displayName}
-              onChange={(e) => setDisplayName(e.target.value)}
-              placeholder="Nama kamu"
-              autoComplete="name"
-            />
-            <Input
-              label="Email"
-              type="email"
-              icon={Mail}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              autoComplete="email"
-              placeholder="email@example.com"
-            />
-            <Input
-              label="Password"
-              type="password"
-              icon={Lock}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              autoComplete="new-password"
-              placeholder="Minimal 8 karakter"
-            />
-            <Input
-              label="Konfirmasi Password"
-              type="password"
-              icon={Lock}
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              required
-              autoComplete="new-password"
-              placeholder="Ulangi password"
-            />
-            <Button type="submit" fullWidth loading={submitting} variant="gradient">
-              Daftar Gratis
-            </Button>
+            <Input label="Nama Lengkap" type="text" icon={User} value={displayName} onChange={(e) => setDisplayName(e.target.value)} placeholder="Nama kamu" autoComplete="name" />
+            <Input label="Email" type="email" icon={Mail} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="email@example.com" />
+            <Input label="Password" type="password" icon={Lock} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="new-password" placeholder="Minimal 8 karakter" />
+            <Input label="Konfirmasi Password" type="password" icon={Lock} value={confirm} onChange={(e) => setConfirm(e.target.value)} required autoComplete="new-password" placeholder="Ulangi password" />
+            <Button type="submit" fullWidth loading={submitting} variant="gradient">Daftar Gratis</Button>
           </form>
 
-          <Button
-            type="button"
-            fullWidth
-            variant="secondary"
-            icon={UserPlus}
-            onClick={handleGoogle}
-            loading={googleSubmitting}
-          >
-            Daftar dengan Google
-          </Button>
+          <Button type="button" fullWidth variant="secondary" icon={UserPlus} onClick={handleGoogle}>Daftar dengan Google</Button>
 
           <div className="relative">
             <div className="absolute inset-0 flex items-center">
@@ -159,19 +112,14 @@ export default function RegisterForm() {
             </div>
           </div>
 
-          <Link
-            to="/login"
-            className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200 cursor-pointer"
-          >
+          <Link to="/login" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200">
             <span>Sudah punya akun? Masuk</span>
             <ArrowRight size={14} />
           </Link>
         </Card>
 
         <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
-          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150 cursor-pointer">
-            Kembali ke beranda
-          </Link>
+          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150">Kembali ke beranda</Link>
         </p>
       </div>
     </div>
