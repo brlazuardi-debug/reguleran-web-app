@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useEffect } from 'react'
-import { useAuth } from '@clerk/react'
+import { useAuth, useUser } from '@clerk/react'
 import useAuthStore from './stores/authStore'
 import useRoleStore from './stores/roleStore'
 import RoleOnboardingModal from './components/role/RoleOnboardingModal'
@@ -35,14 +35,15 @@ import NotFound from './pages/NotFound'
 import ErrorBoundary from './components/ui/ErrorBoundary'
 
 function ClerkSync() {
-  const { isLoaded, isSignedIn, user } = useAuth()
+  const { isLoaded, isSignedIn } = useAuth()
+  const { user } = useUser()
   const setUser = useAuthStore((s) => s.setUser)
   const setLoading = useAuthStore((s) => s.setLoading)
   const fetchRole = useRoleStore((s) => s.fetchRole)
 
   useEffect(() => {
     if (isLoaded) {
-      setUser(isSignedIn ? {
+      setUser(isSignedIn && user ? {
         uid: user.id,
         email: user.primaryEmailAddress?.emailAddress || '',
         displayName: user.fullName || '',

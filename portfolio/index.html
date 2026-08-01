@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Reguleran — Music Rehearsal & Live Session Manager</title>
+<meta name="description" content="Reguleran is a full-stack app for bands and worship teams to manage songs, setlists, live sessions, and bookings.">
+<style>
+  :root {
+    --bg: #fafafa; --ink: #1a1a1a; --muted: #6b7280;
+    --line: #e5e5e5; --card: #ffffff; --accent: #111111;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: var(--bg); color: var(--ink); line-height: 1.6; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+  header { border-bottom: 1px solid var(--line); background: var(--card); }
+  .nav { display: flex; justify-content: space-between; align-items: center; padding: 18px 24px; max-width: 1080px; margin: 0 auto; font-weight: 600; }
+  .nav span { font-size: 18px; letter-spacing: -0.02em; }
+  .nav a { color: var(--ink); text-decoration: none; font-weight: 500; font-size: 14px; }
+  .hero { padding: 72px 0 48px; text-align: center; }
+  .hero h1 { font-size: clamp(32px, 6vw, 52px); letter-spacing: -0.03em; line-height: 1.1; }
+  .hero p { color: var(--muted); max-width: 640px; margin: 18px auto 28px; font-size: 18px; }
+  .badge { display: inline-block; border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px; font-size: 13px; color: var(--muted); margin-bottom: 24px; background: var(--card); }
+  .btn { display: inline-block; background: var(--accent); color: #fff; padding: 12px 26px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 15px; }
+  section { padding: 56px 0; }
+  h2 { font-size: 28px; letter-spacing: -0.02em; margin-bottom: 8px; }
+  .sub { color: var(--muted); margin-bottom: 36px; }
+  .shots { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px; }
+  .shot { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; box-shadow: 0 1px 2px rgba(0,0,0,.04); }
+  .shot img { width: 100%; display: block; }
+  .shot .cap { padding: 14px 16px; font-weight: 600; font-size: 15px; }
+  .shot .cap small { display: block; color: var(--muted); font-weight: 400; font-size: 13px; margin-top: 2px; }
+  .feats { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+  .feat { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px; }
+  .feat h3 { font-size: 17px; margin-bottom: 6px; }
+  .feat p { color: var(--muted); font-size: 14px; }
+  .stack { display: flex; flex-wrap: wrap; gap: 10px; }
+  .stack span { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 14px; font-size: 14px; }
+  footer { border-top: 1px solid var(--line); padding: 32px 0; text-align: center; color: var(--muted); font-size: 14px; }
+  .banner { background: var(--accent); color: #fff; text-align: center; font-size: 13px; padding: 8px 16px; }
+  @media (max-width: 640px) { .hero { padding: 48px 0 32px; } }
+</style>
+</head>
+<body>
+<div class="banner">Preview Build: Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala.</div>
+<header>
+  <div class="nav"><span>Reguleran</span><a href="https://github.com/brlazuardi-debug/reguleran-web-app.git" target="_blank" rel="noopener">View source</a></div>
+</header>
+
+<div class="wrap">
+  <div class="hero">
+    <span class="badge">Full-stack · React + Hono + Postgres</span>
+    <h1>Reguleran — manage songs, setlists &amp; live sessions</h1>
+    <p>A music rehearsal and gig-management app for bands and worship teams. Organize your song library, build setlists, track practice sessions, and send client-facing booking proposals — from one place.</p>
+    <a class="btn" href="#screens">See the app</a>
+  </div>
+
+  <section id="screens">
+    <h2>Screens</h2>
+    <p class="sub">Real screenshots from the running app.</p>
+    <div class="shots">
+      <div class="shot"><img src="assets/screenshots/dashboard.png" alt="Dashboard"><div class="cap">Dashboard <small>Session stats &amp; quick overview</small></div></div>
+      <div class="shot"><img src="assets/screenshots/songs.png" alt="Songs"><div class="cap">Song Library <small>Chords, sections, transpose &amp; audio</small></div></div>
+      <div class="shot"><img src="assets/screenshots/setlists.png" alt="Setlists"><div class="cap">Setlists <small>Order songs with per-song transpose</small></div></div>
+      <div class="shot"><img src="assets/screenshots/sessions.png" alt="Sessions"><div class="cap">Rehearsal Sessions <small>Log practice &amp; progress</small></div></div>
+      <div class="shot"><img src="assets/screenshots/schedule.png" alt="Schedule"><div class="cap">Schedule <small>Upcoming gigs &amp; services</small></div></div>
+      <div class="shot"><img src="assets/screenshots/band-profile.png" alt="Band Profile"><div class="cap">Band Profile <small>Public band info &amp; photos</small></div></div>
+      <div class="shot"><img src="assets/screenshots/proposals.png" alt="Proposals"><div class="cap">Booking Proposals <small>PDF-ready client proposals</small></div></div>
+      <div class="shot"><img src="assets/screenshots/landing.png" alt="Landing page"><div class="cap">Marketing / Landing <small>Public entry point</small></div></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Features</h2>
+    <p class="sub">What Reguleran does.</p>
+    <div class="feats">
+      <div class="feat"><h3>Song library</h3><p>Store lyrics, chord charts, and song sections. Transpose on the fly and attach rehearsal audio.</p></div>
+      <div class="feat"><h3>Setlists</h3><p>Sequence songs for each event with per-song transpose and notes.</p></div>
+      <div class="feat"><h3>Session tracking</h3><p>Log rehearsal sessions per setlist, mark songs ready, and follow progress over time.</p></div>
+      <div class="feat"><h3>Schedule &amp; bookings</h3><p>Keep gigs and services on a calendar, and generate PDF booking proposals for clients.</p></div>
+      <div class="feat"><h3>Band profile</h3><p>Public-facing profile with photos, genres, and social links.</p></div>
+      <div class="feat"><h3>Auth &amp; multi-device</h3><p>Secure sign-in with Clerk on the web app and an Expo React Native companion app.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Tech stack</h2>
+    <p class="sub">Built with tools chosen for a small team to ship fast.</p>
+    <div class="stack">
+      <span>React 19</span><span>Vite 8</span><span>Zustand</span><span>Tailwind CSS</span>
+      <span>Hono</span><span>Postgres (Neon)</span><span>Clerk Auth</span><span>Cloudinary</span>
+      <span>Expo / React Native</span><span>@react-pdf/renderer</span>
+    </div>
+  </section>
+</div>
+
+<footer>Reguleran — a music management app for bands and worship teams.</footer>
+</body>
+</html>

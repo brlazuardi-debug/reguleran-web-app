@@ -73,6 +73,17 @@
 - **Mobile (EAS/Play Store)**: `cd mobile && eas build --platform android --profile production` → upload AAB to Play Console
 - After deploy: update Clerk Dashboard → Redirect URLs → add production URL + switch to Production instance
 
+## Portfolio (static showcase)
+- Static page di `portfolio/` (index.html + assets/screenshots/), ter-deploy ke **https://portfolio-reguleran.vercel.app** (project Vercel `portfolio`).
+- Banner atas: "Preview Build: Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala."
+- Screenshot di-capture dari app yang jalan lokal (Vite :5173 + server :3001) via **Playwright** dengan login **impersonation ticket** Clerk — bukan login form (form rusak di Clerk v6, lihat Gotchas).
+- Workflow screenshot:
+  1. Jalankan server + Vite lokal dengan `.env` yang punya `CORS_ORIGIN` berisi `http://localhost:5173`.
+  2. Buat ticket: `clerk impersonate --app app_3Grd69jUBqOl9WLklW70w7Kkp6Z --instance ins_3Grd66yUUIZRSHQ7nyLc5Js629b user_3HIbWKbenMS7howSWCIJF3AHFpp --yes` → ambil `ticket=` dari URL hasil.
+  3. Script Playwright: `signIn.create({ strategy: 'ticket', ticket })` → `setActive()` → screenshot tiap route.
+  4. Perlu **data seeded** di NeonDB (lagu/setlist/sesi/proposal) supaya screenshot berisi.
+- Deploy: `cd portfolio && vercel --prod --yes` (CLI global, ter-login sebagai `brlazuardi-5555`).
+
 ## Known Gaps
 ### Web App
 - **`db.queryItems()`**: Fetches all rows then filters client-side. OK for small datasets.
@@ -98,6 +109,10 @@
 - Import from `@clerk/react` (not `@clerk/clerk-react`).
 - `postgres.js` tagged template literal — use `sql\`QUERY\`` syntax, never string interpolation.
 - `LoginForm`/`RegisterForm` use `useSignIn`/`useSignUp` hooks directly — `auth.js` only exports `mapUser`/`mapAuthError`.
+- **Clerk v6 frontend breaks** login form: `useSignIn`/`useSignUp` no longer return `isLoaded`, and `create()` returns `{ error }` not `{ status }` — do NOT use login form to demo; use impersonation ticket instead.
+- **`@clerk/backend` v1**: `verifyToken` is a standalone import, NOT a method on `createClerkClient()` result. `clerk.verifyToken()` throws → every authed request 401s. Use `import { verifyToken } from '@clerk/backend'` + pass `secretKey`.
+- **JSONB columns come back as JSON-strings** if seed data was double-encoded (`"..."` string inside jsonb). Fix: `UPDATE t SET c = (c #>> '{}')::jsonb WHERE jsonb_typeof(c) = 'string'`.
+- **CORS in dev**: `.env` `CORS_ORIGINS` must include `http://localhost:5173` or API calls from Vite dev get blocked.
 
 ### Mobile
 - `lucide-react-native` types need manual `.d.ts` declaration (RN compatibility issue with React 19).

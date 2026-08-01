@@ -167,6 +167,18 @@ reguleran/
 | 9 | Mobile Rider | Sound/instrument/budget form + PDF generation |
 | 10 | Hardening | `npm run build` (web), `npx tsc --noEmit` (mobile), `npm run lint` clean |
 
+## Portfolio & Public Demo (Aug 2026)
+- **Portfolio static page** di `portfolio/` (index.html + assets/screenshots/) → **https://portfolio-reguleran.vercel.app** (project Vercel `portfolio`).
+- Banner preview build: "Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala."
+- Screenshot dari app lokal via **Playwright + Clerk impersonation ticket** (login form rusak di Clerk v6, lihat Gotchas di AGENTS.md).
+- Demo user Clerk: `user_3HIbWKbenMS7howSWCIJF3AHFpp` (`demo@reguleran.app`) di instance `ins_3Grd66yUUIZRSHQ7nyLc5Js629b`.
+
+## Bugs Fixed (Aug 2026)
+- **Server auth 401 semua request**: `@clerk/backend` v1 — `verifyToken` adalah standalone import, bukan method `clerk.verifyToken()`. Fix di `server/index.js`.
+- **Seed data tampil sebagai string**: data seed double-encoded (string JSON di dalam kolom jsonb). Fix di DB: `UPDATE t SET c = (c #>> '{}')::jsonb WHERE jsonb_typeof(c) = 'string'`.
+- **Server listen port salah**: `PORT` env dibaca tapi tidak diteruskan ke `serve({ port })`.
+- **CORS dev**: `.env` `CORS_ORIGINS` butuh `http://localhost:5173`.
+
 ## Auth Architecture (Refactored Jul 2026 — Simplified)
 - **No wrapper service**: `LoginForm`/`RegisterForm` use Clerk's `useSignIn`/`useSignUp` hooks directly
 - **`auth.js`**: Only contains `mapUser` + `mapAuthError` helpers (24 lines)

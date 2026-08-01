@@ -3,7 +3,7 @@ import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import postgres from 'postgres'
-import { createClerkClient } from '@clerk/backend'
+import { createClerkClient, verifyToken } from '@clerk/backend'
 import { v2 as cloudinary } from 'cloudinary'
 import React from 'react'
 import { Document, Page, View, Text, StyleSheet, pdf } from '@react-pdf/renderer'
@@ -77,7 +77,7 @@ app.use('/api/*', async (c, next) => {
   const auth = c.req.header('Authorization')
   if (!auth?.startsWith('Bearer ')) return c.json({ error: 'Unauthorized' }, 401)
   try {
-    const { sub } = await clerk.verifyToken(auth.slice(7))
+    const { sub } = await verifyToken(auth.slice(7), { secretKey: process.env.CLERK_SECRET_KEY })
     c.set('userId', sub)
     await next()
   } catch {
@@ -336,6 +336,6 @@ app.post('/api/event-documents/:id/generate-pdf', async (c) => {
 })
 
 const PORT = parseInt(process.env.PORT || '3001')
-serve(app, (info) => {
+serve({ fetch: app.fetch, port: PORT }, (info) => {
   console.log(`Reguleran API on http://localhost:${info.port}`)
 })

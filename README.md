@@ -2,6 +2,11 @@
 
 Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi mingguan, jadwal kalender, proposal manggung, rider teknis, dan RAB. Web + Mobile.
 
+> **Preview Build:** Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala. Live: https://portfolio-reguleran.vercel.app
+
+## Portfolio
+Showcase statis (screenshot app asli + fitur + tech stack) di `portfolio/`, deploy ke **https://portfolio-reguleran.vercel.app**. Screenshot di-capture via Playwright dengan impersonation ticket Clerk (lihat `AGENTS.md` → Portfolio untuk workflow lengkap).
+
 ## Tech Stack
 
 | Layer | Web | Mobile |
