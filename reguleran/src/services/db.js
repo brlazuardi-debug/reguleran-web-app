@@ -2,7 +2,7 @@ const API = import.meta.env.VITE_API_URL || '/api'
 
 async function getToken() {
   const session = window.Clerk?.session
-  return await session?.getToken() || null
+  return (await session?.getToken()) || null
 }
 
 async function headers() {

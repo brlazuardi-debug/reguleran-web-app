@@ -13,7 +13,7 @@ export default function RegisterForm() {
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { signUp, isLoaded: signUpLoaded } = useSignUp()
+  const { signUp } = useSignUp()
   const { isLoaded, isSignedIn } = useAuth()
   const navigate = useNavigate()
 
@@ -21,7 +21,7 @@ export default function RegisterForm() {
     if (isLoaded && isSignedIn) navigate('/app', { replace: true })
   }, [isLoaded, isSignedIn, navigate])
 
-  if (!isLoaded || !signUpLoaded) return null
+  if (!signUp) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()

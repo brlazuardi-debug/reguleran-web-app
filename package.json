@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "@supabase/server": "^1.4.0",
-    "@supabase/supabase-js": "^2.110.7",
-    "firebase": "^12.14.0"
-  }
+  "name": "reguleran-monorepo",
+  "private": true,
+  "version": "1.0.0"
 }

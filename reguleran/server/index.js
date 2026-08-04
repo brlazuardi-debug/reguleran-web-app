@@ -97,7 +97,11 @@ app.get('/api/:collection', async (c) => {
 
 app.get('/api/:collection/:id', async (c) => {
   const { collection, id } = c.req.param()
-  const rows = await sql`SELECT * FROM ${sql(toSnake(collection))} WHERE id = ${id}`
+  const userId = c.get('userId')
+  const table = toSnake(collection)
+  const rows = PUBLIC_TABLES.has(collection)
+    ? await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`
+    : await sql`SELECT * FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
   return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
 })
 
@@ -117,16 +121,21 @@ app.post('/api/:collection', async (c) => {
 
 app.put('/api/:collection/:id', async (c) => {
   const { collection, id } = c.req.param()
+  const userId = c.get('userId')
   const body = mapKeys(await c.req.json(), toSnake)
   const keys = Object.keys(body)
-  const rows = await sql`UPDATE ${sql(toSnake(collection))} SET ${sql(body, ...keys)} WHERE id = ${id} RETURNING *`
+  const table = toSnake(collection)
+  const rows = await sql`UPDATE ${sql(table)} SET ${sql(body, ...keys)} WHERE id = ${id} AND user_id = ${userId} RETURNING *`
   return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
 })
 
 app.delete('/api/:collection/:id', async (c) => {
   const { collection, id } = c.req.param()
-  await sql`DELETE FROM ${sql(toSnake(collection))} WHERE id = ${id}`
+  const userId = c.get('userId')
+  const table = toSnake(collection)
+  await sql`DELETE FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
   return c.json({ success: true })
+})
 })
 
 app.delete('/api/audio/:publicId', async (c) => {
@@ -233,7 +242,7 @@ app.post('/api/proposals/:id/generate-pdf', async (c) => {
   return c.json({ pdfUrl })
 })
 
-app.post('/api/event-documents/:id/generate-pdf', async (c) => {
+app.post('/api/eventDocuments/:id/generate-pdf', async (c) => {
   const { id } = c.req.param()
   const userId = c.get('userId')
   const [doc] = await sql`SELECT * FROM event_documents WHERE id = ${id} AND user_id = ${userId}`

@@ -2,7 +2,8 @@ import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Music, ChevronDown, ChevronUp } from 'lucide-react'
 import ChordDisplay from '../songs/ChordDisplay'
-import PitchShifter from '../audio/PitchShifter'
+import { lazy, Suspense } from 'react'
+const PitchShifter = lazy(() => import('../audio/PitchShifter'))
 import { Badge } from '../ui/Badge'
 
 const PRESETS = [-5, -2, 0, 2, 5]
@@ -72,7 +73,9 @@ export default function PitchCard({ song, transpose, onTransposeChange }) {
           <div className="max-h-48 overflow-y-auto">
             <ChordDisplay lyrics={song.lyrics} transpose={transpose} />
           </div>
-          <PitchShifter songId={song.id} audioUrl={song.audioUrl} audioFileName={song.audioFileName} />
+          <Suspense fallback={<div className="text-sm text-neutral-400 p-4">Memuat pitch shifter…</div>}>
+            <PitchShifter songId={song.id} audioUrl={song.audioUrl} audioFileName={song.audioFileName} />
+          </Suspense>
         </div>
       )}
     </div>

@@ -126,7 +126,7 @@ export default function EventDocumentPage() {
     try {
       const API = import.meta.env.VITE_API_URL || '/api'
       const token = await window.Clerk?.session?.getToken()
-      const res = await fetch(`${API}/event-documents/${existing.id}/generate-pdf`, {
+      const res = await fetch(`${API}/eventDocuments/${existing.id}/generate-pdf`, {
         method: 'POST',
         headers: { 'Authorization': `Bearer ${token}` },
       })

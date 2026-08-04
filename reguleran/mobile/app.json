@@ -20,7 +20,6 @@
       "package": "com.reguleran.app",
       "versionCode": 1,
       "permissions": [
-        "android.permission.RECORD_AUDIO",
         "android.permission.INTERNET",
         "android.permission.CAMERA"
       ]
@@ -35,12 +34,7 @@
     "plugins": [
       "expo-router",
       "expo-secure-store",
-      [
-        "expo-av",
-        {
-          "microphonePermission": "Reguleran needs microphone access for guitar tuner."
-        }
-      ]
+      "expo-av"
     ],
     "experiments": {
       "typedRoutes": true

@@ -30,7 +30,6 @@ export default function AppLayout() {
       <Drawer.Screen name="songs" options={{ title: 'Lagu', headerShown: false }} />
       <Drawer.Screen name="setlists" options={{ title: 'Setlist', headerShown: false }} />
       <Drawer.Screen name="sessions" options={{ title: 'Jadwal', headerShown: false }} />
-      <Drawer.Screen name="tools" options={{ title: 'Alat Musik', headerShown: false }} />
       <Drawer.Screen name="proposals" options={{ title: 'Proposal', headerShown: false }} />
       <Drawer.Screen name="band-profile" options={{ title: 'Band Profile' }} />
       <Drawer.Screen name="settings" options={{ title: 'Pengaturan' }} />

@@ -41,7 +41,7 @@ export default function RiderScreen() {
   useEffect(() => { fetchDoc() }, [id])
 
   async function fetchDoc() {
-    const list = await execute(`/event-documents?sessionId=${id}`)
+    const list = await execute(`/eventDocuments?sessionId=${id}`)
     if (list && Array.isArray(list) && list.length > 0) {
       const d = list[0]
       setDoc(d)
@@ -56,12 +56,12 @@ export default function RiderScreen() {
   async function saveDoc() {
     setSaving(true)
     if (docId) {
-      await execute(`/event-documents/${docId}`, {
+      await execute(`/eventDocuments/${docId}`, {
         method: 'PUT',
         body: { soundNeeds, instrumentNeeds: instruments, budget, notes, sessionId: id },
       })
     } else {
-      const created = await execute('/event-documents', {
+      const created = await execute('/eventDocuments', {
         method: 'POST',
         body: { soundNeeds, instrumentNeeds: instruments, budget, notes, sessionId: id },
       })
@@ -78,7 +78,7 @@ export default function RiderScreen() {
       Alert.alert('Simpan dulu', 'Simpan rider dulu sebelum generate PDF')
       return
     }
-    const data = await execute(`/event-documents/${docId}/generate-pdf`, { method: 'POST' })
+    const data = await execute(`/eventDocuments/${docId}/generate-pdf`, { method: 'POST' })
     if (data && (data as any).pdfUrl) {
       setDoc({ ...doc!, pdfUrl: (data as any).pdfUrl })
       Linking.openURL((data as any).pdfUrl)

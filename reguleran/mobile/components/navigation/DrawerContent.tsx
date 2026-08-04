@@ -13,7 +13,6 @@ const NAV_ITEMS = [
   { route: 'sessions', label: 'Jadwal', icon: Calendar },
   { route: 'proposals', label: 'Proposal', icon: File },
   { route: 'band-profile', label: 'Band Profile', icon: User },
-  { route: 'tools', label: 'Alat Musik', icon: SlidersHorizontal },
   { route: 'settings', label: 'Pengaturan', icon: Settings },
 ]
 

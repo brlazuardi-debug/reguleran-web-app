@@ -9,7 +9,6 @@ import { Badge } from '../components/ui/Badge'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
 import { Spinner } from '../components/ui/Spinner'
 import { useToast } from '../components/ui/Toast'
-import { generateProposalPdf } from '../utils/generateProposalPdf'
 
 const STATUS_BADGE = {
   draft: { variant: 'default', label: 'Draft' },
@@ -69,6 +68,7 @@ export default function ProposalDetailPage() {
 
   const downloadPdf = async () => {
     try {
+      const { generateProposalPdf } = await import('../utils/generateProposalPdf')
       await generateProposalPdf(proposal, profile)
       toast({ type: 'success', message: 'PDF berhasil didownload' })
     } catch (err) {

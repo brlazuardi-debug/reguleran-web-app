@@ -6,4 +6,7 @@ export const ENDPOINTS = {
   sessions: `${API_BASE_URL}/sessions`,
   users: `${API_BASE_URL}/users`,
   library: `${API_BASE_URL}/library`,
+  proposals: `${API_BASE_URL}/proposals`,
+  bandProfiles: `${API_BASE_URL}/bandProfiles`,
+  eventDocuments: `${API_BASE_URL}/eventDocuments`,
 } as const

@@ -5,7 +5,8 @@ import useSongStore from '../stores/songStore'
 import ChordDisplay from '../components/songs/ChordDisplay'
 import TransposeSlider from '../components/songs/TransposeSlider'
 import RoleSpecificPanel from '../components/songs/RoleSpecificPanel'
-import PitchShifter from '../components/audio/PitchShifter'
+import { lazy, Suspense } from 'react'
+const PitchShifter = lazy(() => import('../components/audio/PitchShifter'))
 import { Card } from '../components/ui/Card'
 import { Button } from '../components/ui/Button'
 import { ConfirmDialog } from '../components/ui/ConfirmDialog'
@@ -119,7 +120,9 @@ export default function SongDetail() {
       </div>
 
       {showPitch && (
-        <PitchShifter songId={song.id} audioUrl={song.audioUrl} audioFileName={song.audioFileName} />
+        <Suspense fallback={<div className="text-sm text-neutral-400">Memuat pitch shifter…</div>}>
+          <PitchShifter songId={song.id} audioUrl={song.audioUrl} audioFileName={song.audioFileName} />
+        </Suspense>
       )}
 
       <ConfirmDialog

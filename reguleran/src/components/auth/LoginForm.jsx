@@ -11,7 +11,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const { signIn, isLoaded: signInLoaded } = useSignIn()
+  const { signIn } = useSignIn()
   const { isLoaded, isSignedIn } = useAuth()
   const navigate = useNavigate()
 
@@ -19,7 +19,7 @@ export default function LoginForm() {
     if (isLoaded && isSignedIn) navigate('/app', { replace: true })
   }, [isLoaded, isSignedIn, navigate])
 
-  if (!isLoaded || !signInLoaded) return null
+  if (!signIn) return null
 
   const handleSubmit = async (e) => {
     e.preventDefault()

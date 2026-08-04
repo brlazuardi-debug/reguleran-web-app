@@ -12,7 +12,7 @@ const useEventDocumentStore = create((set) => ({
     if (!user) return () => {}
 
     set({ loading: true })
-    return db.subscribe('event-documents', (items) => {
+    return db.subscribe('eventDocuments', (items) => {
       const documents = items
         .filter((d) => d.userId === user.uid)
         .sort((a, b) => (b.createdAt || '').localeCompare(a.createdAt || ''))
@@ -30,15 +30,15 @@ const useEventDocumentStore = create((set) => ({
     if (!user) throw new Error('Not available')
     const existing = useEventDocumentStore.getState().getBySession(data.sessionId)
     if (existing) {
-      await db.updateItem('event-documents', existing.id, data)
+      await db.updateItem('eventDocuments', existing.id, data)
       return existing.id
     } else {
-      return await db.addItem('event-documents', { ...data, userId: user.uid })
+      return await db.addItem('eventDocuments', { ...data, userId: user.uid })
     }
   },
 
   deleteDocument: async (id) => {
-    await db.deleteItem('event-documents', id)
+    await db.deleteItem('eventDocuments', id)
   },
 }))
 
