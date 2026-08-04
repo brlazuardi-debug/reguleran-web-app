@@ -26,7 +26,9 @@
 - **Zustand persist** — `viewPreferencesStore.js` uses `zustand/middleware` persist (key: `reguleran-view-preferences`).
 - **Auth** Email/Password + Google Sign-In via **Clerk** React hooks (`useSignIn`, `useSignUp`). `LoginForm.jsx` / `RegisterForm.jsx` use hooks directly — no wrapper service. `App.jsx` has `<ClerkSync>` that syncs `useAuth()`/`useUser()` to Zustand. `<ClerkProvider>` is in `main.jsx`.
   - **Clerk v6 hooks return `{ signIn }` / `{ signUp }` (no `isLoaded`).** Guard with `if (!signIn) return null` — the resource is `null` until loaded, then populated. Do NOT check `isLoaded` (removed in v6).
-  - `signIn.create({ identifier, password })` → on `result.status === 'complete'` call `signIn.setActive({ session: result.createdSessionId })`. (`status` still exists on the resource; only the hook's `isLoaded` was removed.)
+  - **Clerk v6 uses a signal-based API** (`@clerk/react` 6.12.6, apiVersion `2025-11`). `signIn.create()` does NOT return a `SignInResource` — it resolves to `{ result: undefined, error: null }`. Read `status` / `createdSessionId` off the `signIn` object itself after `await signIn.create(...)`.
+  - **`setActive` lives on the `clerk` instance, not the resource.** `signIn.setActive(...)` does not exist. Use `const clerk = useClerk()` then `await clerk.setActive({ session: signIn.createdSessionId })`.
+  - Correct login pattern: `await signIn.create({ identifier, password })` → `if (signIn.status === 'complete') { await clerk.setActive({ session: signIn.createdSessionId }); navigate('/app') }`.
 - **All routes** under `/app/*` are wrapped in `ProtectedRoute` + `Layout`.
 - **PWA** via `vite-plugin-pwa` (auto service worker generation).
 - **Notifications**: `services/notification.js` — pure browser Notification API (no FCM).
@@ -133,7 +135,7 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
 ## Portfolio (static showcase)
 - Static page di `portfolio/` (index.html + assets/screenshots/), ter-deploy ke **https://portfolio-reguleran.vercel.app** (project Vercel `portfolio`).
 - Banner atas: "Preview Build: Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala."
-- Screenshot di-capture dari app yang jalan lokal (Vite :5173 + server :3001) via **Playwright** dengan login **impersonation ticket** Clerk — bukan login form (form rusak di Clerk v6, lihat Gotchas).
+- Screenshot di-capture dari app yang jalan lokal (Vite :5173 + server :3001) via **Playwright** dengan login **impersonation ticket** Clerk. (Login form sudah diperbaiki di Clerk v6 signal API — `setActive` di `clerk`, status dibaca dari `signIn.status`; lihat Gotchas.)
 - Workflow screenshot:
   1. Jalankan server + Vite lokal dengan `.env` yang punya `CORS_ORIGIN` berisi `http://localhost:5173`.
   2. Buat ticket: `clerk impersonate --app app_3Grd69jUBqOl9WLklW70w7Kkp6Z --instance ins_3Grd66yUUIZRSHQ7nyLc5Js629b user_3HIbWKbenMS7howSWCIJF3AHFpp --yes` → ambil `ticket=` dari URL hasil.
@@ -165,6 +167,9 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
 - `postgres.js` tagged template literal — use `sql\`QUERY\`` syntax, never string interpolation.
 - `LoginForm`/`RegisterForm` use `useSignIn`/`useSignUp` hooks directly — `auth.js` only exports `mapUser`/`mapAuthError`.
 - **Clerk v6 hooks have NO `isLoaded`**: `useSignIn()` returns `{ signIn, errors, fetchStatus }`. Guard with `if (!signIn) return null`. The old `if (!isLoaded || !signInLoaded) return null` renders a **blank screen** (the bug we fixed).
+- **Clerk v6 signal API — `signIn.create()` return shape**: In `@clerk/react` v6.12.6 the hook's `signIn` is a signal-proxy resource. `await signIn.create(...)` resolves to `{ result: undefined, error: null }` — NOT a resource with `.status`. Read `signIn.status` / `signIn.createdSessionId` off the `signIn` object itself after the call.
+- **`setActive` is on `clerk`, not `signIn`**: `signIn.setActive({ session })` throws `TypeError: not a function`. Use `const clerk = useClerk()` + `await clerk.setActive({ session: signIn.createdSessionId })`. This caused "Verifikasi diperlukan" despite FAPI returning `status: complete` with a `createdSessionId` (verified via Playwright).
+- **Debugging note**: `window.Clerk.signIn` is `undefined`. Hooks read signals at `clerk.__internal_state.signInSignal()` — patching `window.Clerk.client.signIn.create` or `window.Clerk.signIn` will not intercept the app's calls.
 - **`@clerk/backend` v1**: `verifyToken` is a standalone import, NOT a method on `createClerkClient()` result. `clerk.verifyToken()` throws → every authed request 401s. Use `import { verifyToken } from '@clerk/backend'` + pass `secretKey`.
 - **`Authorization` header MUST be `Bearer <token>`** — `services/db.js` MUST send the literal word `Bearer`. A missing/garbled scheme (e.g. `*** <token>`) makes every call 401. (This was a real bug; fixed.)
 - **JSONB columns come back as JSON-strings** if seed data was double-encoded (`"..."` string inside jsonb). Fix: `UPDATE t SET c = (c #>> '{}')::jsonb WHERE jsonb_typeof(c) = 'string'`.

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Music, ArrowRight, LogIn } from 'lucide-react'
-import { useSignIn, useAuth } from '@clerk/react'
+import { useSignIn, useAuth, useClerk } from '@clerk/react'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
@@ -13,6 +13,7 @@ export default function LoginForm() {
   const [submitting, setSubmitting] = useState(false)
   const { signIn } = useSignIn()
   const { isLoaded, isSignedIn } = useAuth()
+  const clerk = useClerk()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -30,9 +31,9 @@ export default function LoginForm() {
 
     setSubmitting(true)
     try {
-      const result = await signIn.create({ identifier: email, password })
-      if (result.status === 'complete') {
-        await signIn.setActive({ session: result.createdSessionId })
+      await signIn.create({ identifier: email, password })
+      if (signIn.status === 'complete') {
+        await clerk.setActive({ session: signIn.createdSessionId })
         navigate('/app')
       } else {
         setError('Verifikasi diperlukan')

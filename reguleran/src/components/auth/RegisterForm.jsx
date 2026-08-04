@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { Mail, Lock, Music, ArrowRight, UserPlus, User } from 'lucide-react'
-import { useSignUp, useAuth } from '@clerk/react'
+import { useSignUp, useAuth, useClerk } from '@clerk/react'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
 import { Button } from '../ui/Button'
@@ -15,6 +15,7 @@ export default function RegisterForm() {
   const [submitting, setSubmitting] = useState(false)
   const { signUp } = useSignUp()
   const { isLoaded, isSignedIn } = useAuth()
+  const clerk = useClerk()
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -33,13 +34,13 @@ export default function RegisterForm() {
 
     setSubmitting(true)
     try {
-      const result = await signUp.create({
+      await signUp.create({
         emailAddress: email,
         password,
         firstName: displayName || email.split('@')[0],
       })
-      if (result.status === 'complete') {
-        await signUp.setActive({ session: result.createdSessionId })
+      if (signUp.status === 'complete') {
+        await clerk.setActive({ session: signUp.createdSessionId })
         navigate('/app')
       } else {
         setError('Verifikasi email diperlukan. Cek inbox Anda.')

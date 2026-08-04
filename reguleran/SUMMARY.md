@@ -172,6 +172,7 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 ## Bugs Fixed (Audit — this cycle)
 - **Web API 401 (CRITICAL)**: `services/db.js` sent `Authorization: *** <token>` — the `Bearer` scheme was missing/garbled, so the server rejected every call. Fixed to `Authorization: \`Bearer ${token}\``.
 - **Login/Register blank screen (CRITICAL)**: Forms guarded on `isLoaded`/`signInLoaded` which **do not exist** in `@clerk/react` v6 (hooks return `{ signIn }`/`{ signUp }`, resource is `null` until ready). Fixed to `if (!signIn) return null` / `if (!signUp) return null`. Login now completes on `result.status === 'complete'`.
+- **Login stuck on "Verifikasi diperlukan" (CRITICAL)**: Clerk v6 (`@clerk/react` 6.12.6) uses a signal-based API. `signIn.create()` returns `{ result: undefined, error: null }` (NOT a `SignInResource`), and `signIn.setActive()` does not exist. The form checked `result.status === 'complete'` → always falsy → showed the error even though FAPI returned `complete` with a `createdSessionId`. Fixed: read `signIn.status` / `signIn.createdSessionId` off the `signIn` resource, and call `clerk.setActive({ session })` via `useClerk()` (see AGENTS.md → Gotchas). Verified with Playwright: `demo@reguleran.app` lands on `/app` with dashboard data.
 - **Supabase/Firebase cruft removed**: root `package.json` depended on `@supabase/server`, `@supabase/supabase-js`, `firebase` — none imported anywhere. Replaced with a clean monorepo placeholder; removed stale root `package-lock.json`.
 - **Bundle size**: main chunk was 1.75 MB (Tone.js + @react-pdf statically imported). Lazy-loaded `PitchShifter` (Tone.js) and dynamically imported `generateProposalPdf` (@react-pdf). Main chunk now 320 KB (gzip 71 KB).
 - **Server verified live**: `GET /api/health` → 200, unauthenticated `/api/songs` → 401, CORS allows `http://localhost:5173`.
@@ -179,7 +180,7 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 ## Portfolio & Public Demo (Aug 2026)
 - **Portfolio static page** di `portfolio/` (index.html + assets/screenshots/) → **https://portfolio-reguleran.vercel.app** (project Vercel `portfolio`).
 - Banner preview build: "Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala."
-- Screenshot dari app lokal via **Playwright + Clerk impersonation ticket** (login form rusak di Clerk v6, lihat Gotchas di AGENTS.md).
+- Screenshot dari app lokal via **Playwright + Clerk impersonation ticket** (login form sempat rusak di Clerk v6 — sudah diperbaiki, lihat Bugs Fixed + Gotchas di AGENTS.md).
 - Demo user Clerk: `user_3HIbWKbenMS7howSWCIJF3AHFpp` (`demo@reguleran.app`) di instance `ins_3Grd66yUUIZRSHQ7nyLc5Js629b`.
 
 ## Auth Architecture (Refactored — Simplified)

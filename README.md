@@ -4,6 +4,10 @@ Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi minggua
 
 > **Preview Build:** Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala. Live: https://portfolio-reguleran.vercel.app
 
+## Recent fixes (Aug 2026)
+- **Login/Register fixed for Clerk v6 signal API** (`@clerk/react` 6.12.6): `signIn.create()` returns `{ result, error }` (not a `SignInResource`); read `signIn.status` / `signIn.createdSessionId` off the `signIn` resource, and activate the session via `clerk.setActive({ session })` from `useClerk()`. Login now redirects to `/app` correctly. See `AGENTS.md` → Gotchas.
+- **Clerk dev instance**: `auth_password.device_trust` disabled so password login works on new devices (otherwise FAPI returns `needs_client_trust`).
+
 ## Portfolio
 Showcase statis (screenshot app asli + fitur + tech stack) di `portfolio/`, deploy ke **https://portfolio-reguleran.vercel.app**. Screenshot di-capture via Playwright dengan impersonation ticket Clerk (lihat `AGENTS.md` → Portfolio untuk workflow lengkap).
 
