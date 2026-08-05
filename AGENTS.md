@@ -37,9 +37,9 @@
 ### Mobile App (Expo SDK 57 + NativeWind)
 - **Expo Router** file-based routing in `mobile/app/`. `_layout.tsx` files define navigators (Stack, Drawer).
 - **ClerkProvider** in `app/_layout.tsx` with `tokenCache` (SecureStore). Auth guard redirects based on `isSignedIn`.
-- **Drawer navigator** in `app/(app)/_layout.tsx`: Dashboard, Lagu, Setlist, Jadwal, Pengaturan (5 items).
+- **Drawer navigator** in `app/(app)/_layout.tsx`: Dashboard, Lagu, Setlist, Jadwal, Proposal, Band Profile, Pengaturan. Hamburger (`headerLeft: <HamburgerButton/>`) is set in each nested Stack's `screenOptions` so it's on every screen (list + detail).
 - **Zustand** stores follow the same pattern as web — `useSongStore`, `useSetlistStore`, `useSessionStore`, `useProposalStore`, `useBandProfileStore`, `useEventDocumentStore`.
-- **API calls** via `hooks/useApi.ts` → `services/api.ts` (fetch wrapper with Clerk JWT, sends `Authorization: Bearer <token>`).
+- **API calls** via `hooks/useApi.ts` → `services/api.ts` (fetch wrapper with Clerk JWT, sends `Authorization: Bearer <token>`). Base URL from `constants/api.ts` (`API_BASE_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001/api'`) — prefixed in `services/api.ts`, so screens pass relative paths only.
 - **All mobile screens** use NativeWind `className` for styling (monochrome palette matching web).
 - **Stack layouts** for nested routes: `songs/_layout.tsx`, `setlists/_layout.tsx`, `sessions/_layout.tsx`, `proposals/_layout.tsx`.
 
@@ -91,7 +91,9 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
 5. Run `reguleran/neon-migration.sql` in the production NeonDB SQL Editor. Confirm tables exist (`users`, `songs`, …).
 
 ### Phase 2 — Backend on Railway
-6. Railway → New Project → Deploy from GitHub repo. Set **Root Directory: `reguleran/server`**.
+6. Railway → New Project → Deploy from GitHub repo. **Root Directory: repo root (`/`)** — Railway reads `railway.json` at root (start command `cd reguleran/server && node index.js`).
+   - **Dep install**: root `package.json` is an npm workspace (`"workspaces": ["reguleran/server"]`). Railway's root `npm install` installs server deps. Do NOT set Root Directory to `reguleran/server` — the start command path assumes repo root. Do NOT set a separate install command.
+   - **Node version**: root `package.json` has `"engines": { "node": ">=20" }`. Railway NIXPACKS will pick Node 20+. If it still resolves Node 18, set `NIXPACKS_NODE_VERSION=20` or pin in Railway Settings → Variables. Node 18 fails on the server's ESM + @react-pdf deps.
 7. Add env vars (Settings → Variables):
    - `PORT=3001`
    - `CORS_ORIGINS=https://<vercel-domain>,https://<www-vercel-domain>,exp://localhost:8081,exp://<tunnel>` (comma-separated; the server also auto-allows `exp://` and `http://192.168.*`)
@@ -100,15 +102,16 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
 8. Deploy. Railway gives a URL like `https://reguleran-api.up.railway.app`.
 9. **Verify**: `curl https://<railway-url>/api/health` → `{"status":"ok"}`. (Unauthenticated `/api/...` must return 401, never 200.)
+   - **Known failure**: `ERR_MODULE_NOT_FOUND: Cannot find package '@hono/node-server'` = root `npm install` didn't install server deps. Fix: confirm root `package.json` has the `workspaces` array, and Railway build runs `npm install` at repo root (Root Directory `/`).
 
 ### Phase 3 — Frontend on Vercel
-10. Vercel → New Project → import repo. Set **Root Directory: `reguleran`**.
+10. Vercel → New Project → import repo. Set **Root Directory: `reguleran`** (⚠️ NOT `.`). Project: `reguleran-web-app` — already linked, live at `reguleran-web-app-brlazuardi.vercel.app`. If Root Directory is `.`, the build runs at the monorepo placeholder root and fails instantly (this was the original `● Error` on every deploy).
 11. Add env vars (Settings → Environment Variables):
     - `VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`
     - `VITE_API_URL=https://<railway-url>/api`
     - `VITE_CLOUDINARY_CLOUD_NAME=<cloud>`
     - `VITE_CLOUDINARY_UPLOAD_PRESET=reguleran_audio`
-12. Deploy. Vercel gives `https://reguleran.vercel.app` (or your custom domain).
+12. Deploy. `vercel --prod` (from repo root, with `reguleran-web-app` linked).
 13. **Verify**: open the site → register a new account via the form (must complete, not loop). Log in → `/app` dashboard loads with data.
 
 ### Phase 4 — Clerk redirect URLs (critical)
@@ -177,9 +180,12 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
 - **No Supabase / Firebase**: those deps were removed. Do not re-add `@supabase/*` or `firebase` to any `package.json`.
 
 ### Mobile
-- `lucide-react-native` types need manual `.d.ts` declaration (RN compatibility issue with React 19).
+- `lucide-react-native` types need manual `.d.ts` declaration (RN compatibility issue with React 19). Install with `--legacy-peer-deps` (lucide peers React ≤18 but works on 19).
 - NativeWind v4 requires `nativewind-env.d.ts` reference file and `global.css` import in root layout.
 - `react-native-reanimated/plugin` must be **last** in `babel.config.js` plugins.
 - Set `"main": "expo-router/entry"` in `package.json` — **not** `index.ts`.
 - `.env` vars must use `EXPO_PUBLIC_` prefix to be exposed to client.
 - Create `mobile/.env` manually — not committed to git (same as web `.env`).
+- **`expo-av` must be `15.1.7`** — `~15.2.3` does not exist in the registry (phantom version); fresh `npm install` fails with ETARGET. Do not bump to `~15.2.x`.
+- **Mobile API base URL**: screens pass relative paths (`/songs`, `/setlists`) to `hooks/useApi` → `services/api.ts` which prefixes `EXPO_PUBLIC_API_URL` (from `constants/api.ts`). Never pass a bare path to raw `fetch`. `constants/api.ts` default is `http://localhost:3001/api`.
+- **Rider shape (mobile) must match server/web**: `soundNeeds{channels,monitors,mics[],notes}`, `instrumentNeeds[{role(guitar|bass|keyboard|drums|vocal),items[],notes}]`, `budgetItems[{category,description,qty,unitPrice,subtotal}]`. The old mobile rider used a different shape (`budget[{description,amount}]`, list `soundNeeds`) — server PDF silently renders empty fields. See `sessions/[id]/rider.tsx`.

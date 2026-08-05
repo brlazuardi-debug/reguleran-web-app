@@ -43,7 +43,7 @@ reguleran/
 │   ├── app/                # Expo Router (file-based routing)
 │   │   ├── _layout.tsx     # ClerkProvider + auth guard
 │   │   ├── (auth)/         # login, register
-│   │   └── (app)/          # Drawer nav: Dashboard, Lagu, Setlist, Jadwal, Tools, ...
+│   │   └── (app)/          # Drawer nav: Dashboard, Lagu, Setlist, Jadwal, Proposal, Band Profile, Pengaturan
 │   ├── components/         # UI + navigation + feature components
 │   ├── stores/             # Zustand stores (song, setlist, session, proposal, ...)
 │   ├── services/           # api.ts, auth.ts, cloudinary.ts, tokenCache.ts
@@ -107,7 +107,7 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 | `/` | Auth gate (redirect to `(app)` or `(auth)/login`) |
 | `/(auth)/login` | Login |
 | `/(auth)/register` | Register |
-| `/(app)` | Drawer (Dashboard, Lagu, Setlist, Jadwal, Pengaturan) |
+| `/(app)` | Drawer (Dashboard, Lagu, Setlist, Jadwal, Proposal, Band Profile, Pengaturan) |
 | `/(app)/songs` | Song list |
 | `/(app)/songs/new` | New song |
 | `/(app)/songs/[id]` | Song detail |
@@ -195,27 +195,36 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 ## Production Deploy Sequence (see AGENTS.md for full runbook)
 1. **Clerk Dashboard**: Switch from Development → Production instance → copy keys (`pk_live_`, `sk_live_`).
 2. **NeonDB**: Run `neon-migration.sql` in Neon SQL Editor.
-3. **Railway** (server): Import repo → Root `reguleran/server` → Set env vars → Deploy → confirm `/api/health` 200.
-4. **Vercel** (web): Import repo → Root `reguleran` → Set `VITE_*` env vars → Deploy.
+3. **Railway** (server): Import repo → Root **repo root** → start command `cd reguleran/server && node index.js` (from `railway.json`) → Set env vars → Deploy → confirm `/api/health` 200.
+   - Deps diinstal via **npm workspaces** (root `package.json` → `reguleran/server`), bukan per-folder install.
+4. **Vercel** (web): project `reguleran-web-app` → **Root Directory `reguleran`** (wajib, bukan `.`) → Set `VITE_*` env vars → Deploy. Live: `reguleran-web-app-brlazuardi.vercel.app`.
 5. **Clerk**: Add production redirect URLs (Vercel `/oauth-callback` + Expo scheme).
 6. **EAS** (mobile): `eas build --platform android --profile production` → upload AAB.
 
 ## Remaining Work
 ### Before Production
+- [ ] **Deploy Hono API → Railway** (project `reguleran-api` masih kosong — "Application not found"). Set `PORT=3001`, `CORS_ORIGINS=https://reguleran-web-app-brlazuardi.vercel.app`, `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLOUDINARY_*`
 - [ ] Clerk: switch from Development → Production instance
-- [ ] Update `.env` + `mobile/.env` with Clerk production keys + Railway API URL + CORS
-- [ ] Deploy Hono API → Railway (set `CLERK_SECRET_KEY`, `DATABASE_URL`, `CLOUDINARY_*`, `CORS_ORIGINS`)
-- [ ] Run `neon-migration.sql` on NeonDB
-- [ ] Deploy Frontend → Vercel (set `VITE_CLERK_PUBLISHABLE_KEY`, `VITE_API_URL`, `VITE_CLOUDINARY_*`)
+- [ ] Update `.env` + `mobile/.env` + Vercel/Railway env dengan Clerk production keys + Railway API URL + CORS
 - [ ] Update Clerk Dashboard redirect URLs with production domain
 - [ ] Smoke test: register → song → audio upload → pitch shift → setlist → session → proposal → PDF
+
+### Selesai (cycle ini — production blockers)
+- ✅ Server `index.js` syntax error (stray `})` line 139) — API tidak bisa start, sudah dihapus
+- ✅ Mobile API base URL — `services/api.ts` sekarang prefix `EXPO_PUBLIC_API_URL` (fetch raw `/songs` → gagal)
+- ✅ Mobile rider shape — disamakan dengan web/server (`soundNeeds`, `instrumentNeeds` role-chips, `budgetItems`)
+- ✅ Navbar web + mobile-web — fitur sekunder di-dropdown "Menu", tidak overflow
+- ✅ Railway deploy fix — npm workspaces + `engines.node >=20` (fix `@hono/node-server` not found)
+- ✅ Web live di Vercel — `reguleran-web-app` READY (sebelumnya semua deploy Error: Root Directory salah)
+- ✅ Cleanup — hapus `react-leaflet` (web), 4 dep mobile tak terpakai, `.opencode/` dari index, fix `expo-av` 15.2.3→15.1.7 (versi phantom, install fresh gagal)
 
 ### Mobile App (Post-MVP)
 - [ ] EAS Build + Play Store release
 - [ ] iOS (Xcode build, App Store Connect)
-- [ ] Tuner: autocorrelation pitch detection via expo-av microphone
-- [ ] Metronome: audio click track via expo-audio
+- [ ] Tuner: autocorrelation pitch detection via microphone (`expo-audio`)
+- [ ] Metronome: audio click track via `expo-audio`
 - [ ] Native audio pitch shifting
+- [ ] Migrate `expo-av` → `expo-audio` (expo-av deprecated in SDK 57; pinned at 15.1.7 as stopgap)
 
 ### Known Accepted Gaps (MVP)
 - Polling subscribe (10s) instead of realtime WebSocket
