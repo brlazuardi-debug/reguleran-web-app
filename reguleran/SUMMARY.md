@@ -197,17 +197,19 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 2. **NeonDB**: Run `neon-migration.sql` in Neon SQL Editor.
 3. **Railway** (server): Import repo → Root **repo root** → start command `cd reguleran/server && node index.js` (from `railway.json`) → Set env vars → Deploy → confirm `/api/health` 200.
    - Deps diinstal via **npm workspaces** (root `package.json` → `reguleran/server`), bukan per-folder install.
+   - **Live**: `https://reguleran-web-app-production.up.railway.app` (health 200, auth 401, CORS OK). Domain `reguleran-api.up.railway.app` TIDAK dipakai (404 fallback).
+   - **CORS wajib**: `CORS_ORIGINS` harus berisi `https://reguleran-web-app-brlazuardi.vercel.app` (+ `http://localhost:5173` untuk dev), atau browser blokir semua request web → API.
 4. **Vercel** (web): project `reguleran-web-app` → **Root Directory `reguleran`** (wajib, bukan `.`) → Set `VITE_*` env vars → Deploy. Live: `reguleran-web-app-brlazuardi.vercel.app`.
+   - `VITE_API_URL = https://reguleran-web-app-production.up.railway.app/api` (bukan `reguleran-api...`).
 5. **Clerk**: Add production redirect URLs (Vercel `/oauth-callback` + Expo scheme).
 6. **EAS** (mobile): `eas build --platform android --profile production` → upload AAB.
 
 ## Remaining Work
 ### Before Production
-- [ ] **Deploy Hono API → Railway** (project `reguleran-api` masih kosong — "Application not found"). Set `PORT=3001`, `CORS_ORIGINS=https://reguleran-web-app-brlazuardi.vercel.app`, `DATABASE_URL`, `CLERK_SECRET_KEY`, `CLOUDINARY_*`
+- [ ] **Smoke test browser**: register → lagu → upload audio → setlist → sesi → proposal → PDF (via `reguleran-web-app-brlazuardi.vercel.app`). Pastikan semua request ke `reguleran-web-app-production.up.railway.app` 2xx di Network tab.
 - [ ] Clerk: switch from Development → Production instance
 - [ ] Update `.env` + `mobile/.env` + Vercel/Railway env dengan Clerk production keys + Railway API URL + CORS
 - [ ] Update Clerk Dashboard redirect URLs with production domain
-- [ ] Smoke test: register → song → audio upload → pitch shift → setlist → session → proposal → PDF
 
 ### Selesai (cycle ini — production blockers)
 - ✅ Server `index.js` syntax error (stray `})` line 139) — API tidak bisa start, sudah dihapus
@@ -216,6 +218,9 @@ No RLS — auth via Clerk JWT verification in Hono middleware.
 - ✅ Navbar web + mobile-web — fitur sekunder di-dropdown "Menu", tidak overflow
 - ✅ Railway deploy fix — npm workspaces + `engines.node >=20` (fix `@hono/node-server` not found)
 - ✅ Web live di Vercel — `reguleran-web-app` READY (sebelumnya semua deploy Error: Root Directory salah)
+- ✅ **Backend live di Railway** — `reguleran-web-app-production.up.railway.app` (health 200, auth 401, CORS web+exp OK) — diverifikasi via curl
+- ✅ **CORS beres** — `access-control-allow-origin` untuk domain Vercel muncul (sebelumnya hilang → web terblokir)
+- ✅ `VITE_API_URL` di Vercel di-update ke URL Railway live + redeploy production READY
 - ✅ Cleanup — hapus `react-leaflet` (web), 4 dep mobile tak terpakai, `.opencode/` dari index, fix `expo-av` 15.2.3→15.1.7 (versi phantom, install fresh gagal)
 
 ### Mobile App (Post-MVP)

@@ -11,6 +11,8 @@ Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi minggua
 - **Mobile data layer dead** — all screens called raw `fetch('/songs')` with no base URL. `services/api.ts` now prefixes `EXPO_PUBLIC_API_URL`.
 - **Mobile rider shape** — aligned to server/web (`soundNeeds`, `instrumentNeeds` role-chips, `budgetItems`).
 - **Railway deploy** — root `package.json` now uses npm workspaces (`reguleran/server`) + `engines.node >=20`; fixes `ERR_MODULE_NOT_FOUND @hono/node-server` on fresh installs.
+- **Backend live on Railway** — `reguleran-web-app-production.up.railway.app` online (health 200, auth 401, CORS OK). Domain `reguleran-api.up.railway.app` is NOT used (reserved but 404).
+- **CORS fixed** — Railway `CORS_ORIGINS` must include `https://reguleran-web-app-brlazuardi.vercel.app` or the web→API calls are rejected in browser.
 - **Vercel live** — `reguleran-web-app` production deploy READY (was Error: project Root Directory was `.` instead of `reguleran`).
 - **Deps pruned** — removed unused `react-leaflet` (web) and 4 unused mobile deps; fixed `expo-av` `~15.2.3` → `15.1.7` (15.2.x never existed in registry — broke fresh `npm install`).
 
@@ -144,7 +146,10 @@ NeonDB (PostgreSQL). Run `neon-migration.sql` (located at `reguleran/neon-migrat
 2. **NeonDB** → create a production project → run `neon-migration.sql` in its SQL Editor.
 3. **Backend (Railway)** → import repo → Root Directory: **repo root** (`/`) → Railway reads `railway.json` (start command `cd reguleran/server && node index.js`) → set env vars (`CORS_ORIGINS`, `CLERK_SECRET_KEY`, `DATABASE_URL`, `CLOUDINARY_*`, `PORT`) → Deploy. Deps diinstal via **npm workspaces** di root. Confirm `GET /api/health` returns `{"status":"ok"}`.
    - ⚠️ Pastikan Railway memakai Node ≥ 20 (`engines.node` di root `package.json`; Node 18 gagal).
-4. **Frontend (Vercel)** → project `reguleran-web-app` → **Root Directory: `reguleran`** (bukan `.`) → set `VITE_*` env vars (`VITE_CLERK_PUBLISHABLE_KEY`, `VITE_API_URL` = Railway URL `/api`, `VITE_CLOUDINARY_*`) → Deploy. Live: `reguleran-web-app-brlazuardi.vercel.app`.
+   - ✅ **Live**: `https://reguleran-web-app-production.up.railway.app` (health 200, auth 401, CORS web + `exp://` OK). Domain `reguleran-api.up.railway.app` yang lain TIDAK dipakai (404 fallback).
+   - **CORS**: Railway `CORS_ORIGINS` **wajib** memuat `https://reguleran-web-app-brlazuardi.vercel.app` (dan `http://localhost:5173` untuk dev). Tanpa itu, web → API ditolak browser (`access-control-allow-origin` hilang). Mobile (`exp://`, `http://192.168.*`) auto-allow oleh server.
+4. **Frontend (Vercel)** → project `reguleran-web-app` → **Root Directory: `reguleran`** (bukan `.`) → set `VITE_*` env vars (`VITE_CLERK_PUBLISHABLE_KEY`, `VITE_API_URL = https://reguleran-web-app-production.up.railway.app/api`, `VITE_CLOUDINARY_*`) → Deploy. Live: `reguleran-web-app-brlazuardi.vercel.app`.
+   - ⚠️ Update `VITE_API_URL` kalau URL Railway berubah: `vercel env rm VITE_API_URL production --yes` lalu `vercel env add VITE_API_URL production`, lalu `vercel --prod`.
 5. **Clerk Dashboard** → add production redirect URLs (Vercel domain `/oauth-callback`, and the Expo scheme for mobile).
 6. **Mobile (EAS)** → `eas build --platform android --profile production` → upload AAB to Play Console. Set `EXPO_PUBLIC_API_URL` to the Railway URL.
 

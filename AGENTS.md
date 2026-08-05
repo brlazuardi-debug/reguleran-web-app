@@ -100,19 +100,21 @@ Goal: a fully integrated system where web, mobile, and API all talk to the **sam
    - `DATABASE_URL=<neon prod url>`
    - `CLERK_SECRET_KEY=sk_live_...`
    - `CLOUDINARY_CLOUD_NAME`, `CLOUDINARY_API_KEY`, `CLOUDINARY_API_SECRET`
-8. Deploy. Railway gives a URL like `https://reguleran-api.up.railway.app`.
+8. Deploy. Railway gives a URL like `https://reguleran-api.up.railway.app`. **⚠️ Actual live URL: `https://reguleran-web-app-production.up.railway.app`** — the reserved `reguleran-api.up.railway.app` domain is NOT attached to the service (returns 404 fallback). Find the real one in Railway → service → Networking → Domains.
 9. **Verify**: `curl https://<railway-url>/api/health` → `{"status":"ok"}`. (Unauthenticated `/api/...` must return 401, never 200.)
    - **Known failure**: `ERR_MODULE_NOT_FOUND: Cannot find package '@hono/node-server'` = root `npm install` didn't install server deps. Fix: confirm root `package.json` has the `workspaces` array, and Railway build runs `npm install` at repo root (Root Directory `/`).
+   - **CORS check (critical)**: `CORS_ORIGINS` must include `https://reguleran-web-app-brlazuardi.vercel.app`. Verify with: `curl -s -D - -o /dev/null -X OPTIONS -H "Origin: https://reguleran-web-app-brlazuardi.vercel.app" -H "Access-Control-Request-Method: GET" https://<railway-url>/api/songs | grep -i access-control-allow-origin` → must echo the origin. Missing = browser blocks all API calls. (Mobile `exp://`/`http://192.168.*` auto-allow by server.)
 
 ### Phase 3 — Frontend on Vercel
 10. Vercel → New Project → import repo. Set **Root Directory: `reguleran`** (⚠️ NOT `.`). Project: `reguleran-web-app` — already linked, live at `reguleran-web-app-brlazuardi.vercel.app`. If Root Directory is `.`, the build runs at the monorepo placeholder root and fails instantly (this was the original `● Error` on every deploy).
 11. Add env vars (Settings → Environment Variables):
     - `VITE_CLERK_PUBLISHABLE_KEY=pk_live_...`
-    - `VITE_API_URL=https://<railway-url>/api`
+    - `VITE_API_URL=https://reguleran-web-app-production.up.railway.app/api` (the live Railway URL — NOT `reguleran-api...`)
     - `VITE_CLOUDINARY_CLOUD_NAME=<cloud>`
     - `VITE_CLOUDINARY_UPLOAD_PRESET=reguleran_audio`
 12. Deploy. `vercel --prod` (from repo root, with `reguleran-web-app` linked).
 13. **Verify**: open the site → register a new account via the form (must complete, not loop). Log in → `/app` dashboard loads with data.
+    - **Updating `VITE_API_URL`**: `vercel env rm VITE_API_URL production --yes` → `vercel env add VITE_API_URL production` (paste value) → `vercel --prod`.
 
 ### Phase 4 — Clerk redirect URLs (critical)
 14. Clerk Dashboard → **Redirect URLs**, add:
