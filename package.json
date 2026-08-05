@@ -1,5 +1,11 @@
 {
   "name": "reguleran-monorepo",
   "private": true,
-  "version": "1.0.0"
+  "version": "1.0.0",
+  "workspaces": [
+    "reguleran/server"
+  ],
+  "engines": {
+    "node": ">=20"
+  }
 }
