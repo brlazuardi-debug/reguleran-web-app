@@ -9,3 +9,5 @@ build/
 .claude/
 .opencode/
 skills-lock.json
+.vercel
+.env*
