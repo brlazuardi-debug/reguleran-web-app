@@ -7,11 +7,9 @@ export default function SetlistsLayout() {
       headerStyle: { backgroundColor: '#0a0a0a' },
       headerTintColor: '#ffffff',
       headerTitleStyle: { fontWeight: '700' },
+      headerLeft: () => <HamburgerButton />,
     }}>
-      <Stack.Screen name="index" options={{
-        title: 'Setlist',
-        headerLeft: () => <HamburgerButton />,
-      }} />
+      <Stack.Screen name="index" options={{ title: 'Setlist' }} />
       <Stack.Screen name="[id]" options={{ title: '' }} />
     </Stack>
   )

@@ -136,7 +136,6 @@ app.delete('/api/:collection/:id', async (c) => {
   await sql`DELETE FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
   return c.json({ success: true })
 })
-})
 
 app.delete('/api/audio/:publicId', async (c) => {
   const { publicId } = c.req.param()

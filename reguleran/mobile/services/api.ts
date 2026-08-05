@@ -1,3 +1,5 @@
+import { API_BASE_URL } from '../constants/api'
+
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE'
 
 interface ApiOptions {
@@ -16,7 +18,8 @@ export async function apiRequest<T>(
   { method = 'GET', body, token }: ApiOptions
 ): Promise<ApiResponse<T>> {
   try {
-    const res = await fetch(endpoint, {
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`
+    const res = await fetch(url, {
       method,
       headers: {
         'Content-Type': 'application/json',

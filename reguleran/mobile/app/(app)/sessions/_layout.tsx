@@ -7,11 +7,9 @@ export default function SessionsLayout() {
       headerStyle: { backgroundColor: '#0a0a0a' },
       headerTintColor: '#ffffff',
       headerTitleStyle: { fontWeight: '700' },
+      headerLeft: () => <HamburgerButton />,
     }}>
-      <Stack.Screen name="index" options={{
-        title: 'Jadwal',
-        headerLeft: () => <HamburgerButton />,
-      }} />
+      <Stack.Screen name="index" options={{ title: 'Jadwal' }} />
       <Stack.Screen name="new" options={{ title: 'Tambah Jadwal' }} />
       <Stack.Screen name="[id]" options={{ title: '' }} />
       <Stack.Screen name="[id]/rider" options={{ title: 'Rider & RAB' }} />

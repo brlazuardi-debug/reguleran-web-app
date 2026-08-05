@@ -23,7 +23,7 @@ export default function DrawerContent({ navigation }: { navigation: any }) {
   const pathname = usePathname()
   const insets = useSafeAreaInsets()
 
-  const activeRoute = NAV_ITEMS.find((item) => pathname.startsWith(`/${item.route}`) || pathname === `/(app)/${item.route}`)
+  const activeRoute = NAV_ITEMS.find((item) => pathname === `/${item.route}` || pathname.startsWith(`/${item.route}/`))
 
   return (
     <View className="flex-1 bg-[#0a0a0a]" style={{ paddingTop: insets.top }}>
