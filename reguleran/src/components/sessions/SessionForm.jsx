@@ -47,7 +47,6 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
           value={name}
           onChange={(e) => setName(e.target.value)}
           required
-          placeholder="Mis: Reguleran Cafe"
         />
         <Select
           label="Setlist (opsional)"
@@ -74,29 +73,25 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
         <h4 className="text-sm font-medium text-stone-700 dark:text-stone-300 mb-3">Lokasi</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <Input
-            label="Nama Tempat"
+            label="Nama Tempat / Venue"
             value={venue}
             onChange={(e) => setVenue(e.target.value)}
-            placeholder="Mis: Cafe Senja"
           />
           <Input
             label="Alamat"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            placeholder="Jl. Contoh No. 123"
           />
           <Input
-            label="Kontak Person"
+            label="Kontak PIC"
             value={contactPerson}
             onChange={(e) => setContactPerson(e.target.value)}
-            placeholder="Mis: Bang Rudi"
           />
           <Input
             label="No. Telepon"
             type="tel"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            placeholder="0812-xxxx-xxxx"
           />
         </div>
         <div className="mt-4">
@@ -104,7 +99,6 @@ export default function SessionForm({ initial, setlists, onSubmit, onCancel, sub
             label="Catatan Lokasi"
             value={locationNotes}
             onChange={(e) => setLocationNotes(e.target.value)}
-            placeholder="Parkir di belakang, masuk lebar pintu samping..."
             rows={3}
           />
         </div>

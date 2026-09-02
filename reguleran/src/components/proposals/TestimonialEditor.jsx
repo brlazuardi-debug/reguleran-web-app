@@ -23,8 +23,8 @@ export default function TestimonialEditor({ testimonials, onChange }) {
             <X size={14} />
           </button>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pr-6">
-            <Input label="Nama" value={t.name} onChange={(e) => update(i, 'name', e.target.value)} placeholder="Contoh: Mang Ujang" />
-            <Textarea label="Testimoni" value={t.quote} onChange={(e) => update(i, 'quote', e.target.value)} rows={2} placeholder="Band ini keren abis!" />
+            <Input label="Nama Klien / Event" value={t.name} onChange={(e) => update(i, 'name', e.target.value)} />
+            <Textarea label="Isi Testimoni" value={t.quote} onChange={(e) => update(i, 'quote', e.target.value)} rows={2} />
           </div>
         </div>
       ))}

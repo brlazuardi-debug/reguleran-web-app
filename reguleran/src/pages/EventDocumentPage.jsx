@@ -71,10 +71,10 @@ function RiderForm({ existingDoc, onSave, onGeneratePdf }) {
       <Card>
         <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">Stage & Jadwal</h3>
         <div className="space-y-4">
-          <Textarea label="Catatan Layout Panggung" value={stageLayoutNotes} onChange={(e) => setStageLayoutNotes(e.target.value)} rows={3} placeholder="Posisi drummer di kiri belakang, vocal di tengah..." />
+          <Textarea label="Catatan Layout Panggung" value={stageLayoutNotes} onChange={(e) => setStageLayoutNotes(e.target.value)} rows={3} />
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <Input label="Jam Soundcheck" type="time" value={soundcheckTime} onChange={(e) => setSoundcheckTime(e.target.value)} />
-            <Input label="Kebutuhan Listrik/Power" value={powerNeeds} onChange={(e) => setPowerNeeds(e.target.value)} placeholder="1500W, butuh colokan tambahan..." />
+            <Input label="Kebutuhan Listrik/Power" value={powerNeeds} onChange={(e) => setPowerNeeds(e.target.value)} />
           </div>
         </div>
       </Card>
@@ -83,7 +83,7 @@ function RiderForm({ existingDoc, onSave, onGeneratePdf }) {
         <h3 className="font-semibold text-neutral-900 dark:text-white mb-4">Rincian Anggaran Biaya</h3>
         <BudgetTable items={budgetItems} onChange={setBudgetItems} />
         <div className="mt-4">
-          <Textarea label="Catatan Anggaran" value={budgetNotes} onChange={(e) => setBudgetNotes(e.target.value)} rows={2} placeholder="Catatan tambahan..." />
+          <Textarea label="Catatan Anggaran" value={budgetNotes} onChange={(e) => setBudgetNotes(e.target.value)} rows={2} />
         </div>
       </Card>
     </div>

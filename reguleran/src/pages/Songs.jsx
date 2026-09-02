@@ -68,19 +68,19 @@ export default function Songs() {
       {songs.length > 0 && (
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1 max-w-md">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-400" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#8e9192]" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Cari judul atau artis..."
-              className="w-full pl-9 pr-4 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-sm text-stone-900 dark:text-stone-100 placeholder-stone-400 focus:outline-none focus:ring-2 focus:ring-primary-500/30 focus:border-primary-500 transition-all"
+              className="w-full pl-9 pr-4 py-2 rounded-lg border border-white/[0.08] bg-[#13161B] text-sm text-white placeholder-[#8e9192] focus:outline-none focus:ring-1 focus:ring-white/30 focus:border-white/30 transition-all"
             />
           </div>
           <select
             value={keyFilter}
             onChange={(e) => setKeyFilter(e.target.value)}
-            className="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-sm text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
+            className="px-3 py-2 rounded-lg border border-white/[0.08] bg-[#13161B] text-sm text-[#c4c7ca] focus:outline-none focus:ring-1 focus:ring-white/30 transition-all font-mono"
           >
             <option value="">Semua Nada</option>
             {KEY_OPTIONS_ALL.filter(Boolean).map((k) => (
@@ -88,11 +88,11 @@ export default function Songs() {
             ))}
           </select>
           <div className="flex items-center gap-2">
-            <ArrowUpDown size={14} className="text-neutral-400" />
+            <ArrowUpDown size={14} className="text-[#8e9192]" />
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="px-3 py-2 rounded-xl border border-stone-200 dark:border-stone-700 bg-white dark:bg-stone-900 text-sm text-stone-700 dark:text-stone-300 focus:outline-none focus:ring-2 focus:ring-primary-500/30 transition-all"
+              className="px-3 py-2 rounded-lg border border-white/[0.08] bg-[#13161B] text-sm text-[#c4c7ca] focus:outline-none focus:ring-1 focus:ring-white/30 transition-all font-mono"
             >
               <option value="newest">Terbaru</option>
               <option value="title">Judul A-Z</option>

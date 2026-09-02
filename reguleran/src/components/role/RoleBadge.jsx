@@ -14,9 +14,12 @@ export default function RoleBadge({ role, size = 'sm', ...props }) {
   if (!config) return null
   const Icon = config.icon
   return (
-    <Badge variant="default" size={size} {...props}>
-      <Icon size={size === 'sm' ? 12 : 14} className="inline mr-1" />
+    <span
+      className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded font-mono text-[11px] uppercase tracking-wider bg-white/[0.08] border border-white/[0.12] text-white"
+      {...props}
+    >
+      <Icon size={size === 'sm' ? 11 : 13} className="text-white/80" />
       {config.label}
-    </Badge>
+    </span>
   )
 }

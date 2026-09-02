@@ -8,8 +8,8 @@ function EmptyState({
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
       {Icon && (
-        <div className="w-16 h-16 rounded-2xl bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center mb-4">
-          <Icon size={32} className="text-neutral-400 dark:text-neutral-500" />
+        <div className="w-14 h-14 rounded-xl bg-neutral-100 dark:bg-white/[0.05] border border-neutral-200 dark:border-white/[0.08] flex items-center justify-center mb-4">
+          <Icon size={26} className="text-neutral-400 dark:text-[#8e9192]" />
         </div>
       )}
       {title && (

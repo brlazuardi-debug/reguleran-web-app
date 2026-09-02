@@ -94,13 +94,11 @@ export default function SongForm({ initial, onSubmit, onCancel, submitting }) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
-          placeholder="Judul lagu"
         />
         <Input
           label="Artis"
           value={artist}
           onChange={(e) => setArtist(e.target.value)}
-          placeholder="Nama artis"
         />
         <Select
           label="Nada Dasar"
@@ -115,7 +113,6 @@ export default function SongForm({ initial, onSubmit, onCancel, submitting }) {
           max="300"
           value={bpm}
           onChange={(e) => setBpm(e.target.value)}
-          placeholder="120"
         />
       </div>
 
@@ -132,11 +129,10 @@ export default function SongForm({ initial, onSubmit, onCancel, submitting }) {
 
       <Textarea
         label="Lirik & Chord"
-        helperText="Gunakan [C] [Am] [F] untuk menandai chord"
+        helperText="Gunakan format [C], [Am], [F], [G] tepat di atas lirik"
         rows={10}
         value={lyrics}
         onChange={(e) => setLyrics(e.target.value)}
-        placeholder={`[C]Ku ingin [Am]berjalan [F]bersamamu [G7]\n[C]Di malam [Am]minggu yang [F]indah ini [G7]`}
         className="font-mono text-sm"
       />
 

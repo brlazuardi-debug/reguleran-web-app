@@ -1,33 +1,22 @@
 import { Outlet } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
-import { useTheme } from '../../context/ThemeContext'
 import Navbar from './Navbar'
 
 export default function Layout() {
-  const { theme, toggle } = useTheme()
-
   return (
-    <div className="min-h-screen bg-neutral-50 dark:bg-[#0a0a0a] transition-colors duration-200">
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-grid-light dark:bg-grid opacity-40" />
+    <div className="min-h-screen bg-neutral-50 text-neutral-900 dark:bg-[#08090A] dark:text-neutral-200 transition-colors duration-200 antialiased selection:bg-neutral-900 selection:text-white dark:selection:bg-white/20 dark:selection:text-white">
+      {/* Background Grid Pattern */}
+      <div className="fixed inset-0 pointer-events-none z-0">
+        <div className="absolute inset-0 bg-grid opacity-15 dark:opacity-30" />
       </div>
 
       <Navbar />
-      <main className="relative max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Outlet />
-      </main>
 
-      <button
-        onClick={toggle}
-        className="md:hidden fixed bottom-24 right-4 z-50 p-3 rounded-full bg-white dark:bg-[#0a0a0a] border border-neutral-200 dark:border-neutral-700 shadow-lg hover:shadow-xl transition-all duration-200 active:scale-90"
-        aria-label="Toggle dark mode"
-      >
-        {theme === 'dark' ? (
-          <Sun size={18} className="text-neutral-400" />
-        ) : (
-          <Moon size={18} className="text-neutral-600" />
-        )}
-      </button>
+      {/* Main Canvas Content: Responsive offset for desktop sidebar (ml-64) and mobile header/footer */}
+      <main className="relative z-10 md:ml-64 pt-16 md:pt-[4.5rem] pb-24 md:pb-16 px-4 sm:px-6 lg:px-8 min-h-screen">
+        <div className="max-w-6xl mx-auto">
+          <Outlet />
+        </div>
+      </main>
     </div>
   )
 }

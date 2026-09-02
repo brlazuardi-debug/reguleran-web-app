@@ -12,7 +12,7 @@ const useBandProfileStore = create((set) => ({
     if (!user) return () => {}
 
     set({ loading: true })
-    return db.subscribe('band-profiles', (items) => {
+    return db.subscribe('bandProfiles', (items) => {
       const profile = items.find((p) => p.userId === user.uid) || null
       set({ profile, loading: false })
     })
@@ -23,16 +23,16 @@ const useBandProfileStore = create((set) => ({
     if (!user) throw new Error('Not available')
     const existing = useBandProfileStore.getState().profile
     if (existing) {
-      await db.updateItem('band-profiles', existing.id, data)
+      await db.updateItem('bandProfiles', existing.id, data)
     } else {
-      await db.addItem('band-profiles', { ...data, userId: user.uid })
+      await db.addItem('bandProfiles', { ...data, userId: user.uid })
     }
   },
 
   deleteProfile: async () => {
     const existing = useBandProfileStore.getState().profile
     if (!existing) return
-    await db.deleteItem('band-profiles', existing.id)
+    await db.deleteItem('bandProfiles', existing.id)
     set({ profile: null })
   },
 }))

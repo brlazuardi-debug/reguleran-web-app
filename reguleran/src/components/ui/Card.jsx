@@ -1,9 +1,9 @@
 const variants = {
-  default: 'bg-white dark:bg-neutral-900 border-neutral-200 dark:border-neutral-800 shadow-sm',
+  default: 'bg-white dark:bg-[#13161B] border-neutral-200 dark:border-white/[0.08] shadow-sm',
   ghost: 'bg-transparent border-transparent',
-  surface: 'bg-neutral-50 dark:bg-neutral-900/50 border-neutral-200 dark:border-neutral-800',
-  glass: 'bg-white/70 dark:bg-white/5 backdrop-blur-xl border-neutral-200/50 dark:border-neutral-800/50 shadow-lg',
-  gradient: 'bg-white dark:bg-neutral-900 border-transparent shadow-sm',
+  surface: 'bg-neutral-50 dark:bg-[#191c21] border-neutral-200 dark:border-white/[0.08]',
+  glass: 'bg-white/70 dark:bg-[#13161B]/80 backdrop-blur-xl border-neutral-200/50 dark:border-white/[0.08] shadow-lg',
+  gradient: 'bg-white dark:bg-[#13161B] border-neutral-200 dark:border-white/[0.08] shadow-sm',
 }
 
 function Card({
@@ -17,12 +17,11 @@ function Card({
   return (
     <div
       className={`
-        rounded-2xl border
+        rounded-xl border
         ${padding ? 'p-5 sm:p-6' : ''}
-        transition-all duration-300
+        transition-all duration-200
         ${variants[variant]}
-        ${hover ? 'hover:shadow-xl hover:-translate-y-0.5 cursor-pointer' : ''}
-        ${variant === 'gradient' ? "bg-gradient-to-br from-white to-neutral-50 dark:from-neutral-900 dark:to-neutral-950" : ''}
+        ${hover ? 'hover:shadow-md hover:border-neutral-300 dark:hover:border-white/[0.20] cursor-pointer' : ''}
         ${className}
       `}
       {...props}

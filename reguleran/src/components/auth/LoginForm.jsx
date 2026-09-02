@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { Mail, Lock, Music, ArrowRight, LogIn } from 'lucide-react'
+import { Mail, Lock, Music, ArrowRight, LogIn, Sparkles } from 'lucide-react'
 import { useSignIn, useAuth, useClerk } from '@clerk/react'
 import { Card } from '../ui/Card'
 import { Input } from '../ui/Input'
@@ -11,6 +11,7 @@ export default function LoginForm() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [demoLoading, setDemoLoading] = useState(false)
   const { signIn } = useSignIn()
   const { isLoaded, isSignedIn } = useAuth()
   const clerk = useClerk()
@@ -21,6 +22,25 @@ export default function LoginForm() {
   }, [isLoaded, isSignedIn, navigate])
 
   if (!signIn) return null
+
+  const handleDemoLogin = async () => {
+    setError('')
+    setDemoLoading(true)
+    try {
+      await signIn.create({ identifier: 'demo@reguleran.app', password: 'Reguleran2026!' })
+      if (signIn.status === 'complete') {
+        await clerk.setActive({ session: signIn.createdSessionId })
+        navigate('/app')
+      } else {
+        setError('Verifikasi diperlukan')
+      }
+    } catch (err) {
+      const msg = err.errors?.[0]?.message || err.message || 'Terjadi kesalahan login demo'
+      setError(msg)
+    } finally {
+      setDemoLoading(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -63,7 +83,7 @@ export default function LoginForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#0a0a0a]">
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-neutral-50 dark:bg-[#08090A]">
       <div className="fixed inset-0 pointer-events-none">
         <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] rounded-full bg-neutral-500/5 blur-[100px] dark:bg-neutral-500/10" />
         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-neutral-500/5 blur-[80px] dark:bg-neutral-500/8" />
@@ -80,14 +100,45 @@ export default function LoginForm() {
           <p className="text-sm text-neutral-500 dark:text-neutral-400 mt-1.5">Selamat datang kembali di Reguleran</p>
         </div>
 
-        <Card variant="glass" className="space-y-5">
+        <Card variant="glass" className="space-y-4">
           {error && (
-            <div className="bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 px-4 py-3 rounded-xl text-sm border border-neutral-200 dark:border-neutral-700">
+            <div className="bg-red-500/10 text-red-600 dark:text-red-400 px-4 py-3 rounded-lg text-sm border border-red-500/20 font-mono">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Quick Demo Login Button */}
+          <div className="p-3 bg-white/[0.04] border border-white/[0.10] rounded-lg text-center space-y-2">
+            <div className="flex items-center justify-between text-xs text-[#c4c7ca] font-mono">
+              <span className="flex items-center gap-1.5">
+                <Sparkles size={13} className="text-white" />
+                Demo Testing
+              </span>
+              <span className="text-[10px] uppercase text-[#8e9192]">Admin Access</span>
+            </div>
+            <Button
+              type="button"
+              variant="primary"
+              fullWidth
+              loading={demoLoading}
+              onClick={handleDemoLogin}
+              className="text-xs py-2"
+            >
+              1-Klik Masuk sebagai Demo Admin
+            </Button>
+            <p className="font-mono text-[10px] text-[#8e9192]">demo@reguleran.app / Reguleran2026!</p>
+          </div>
+
+          <div className="relative py-1">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-white/[0.08]" />
+            </div>
+            <div className="relative flex justify-center text-xs">
+              <span className="bg-[#13161B] px-2 text-[#8e9192] font-mono text-[11px]">atau login manual</span>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-3.5">
             <Input label="Email" type="email" icon={Mail} value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email" placeholder="email@example.com" />
             <Input label="Password" type="password" icon={Lock} value={password} onChange={(e) => setPassword(e.target.value)} required autoComplete="current-password" placeholder="Minimal 8 karakter" />
             <Button type="submit" fullWidth loading={submitting}>Masuk</Button>
@@ -95,23 +146,23 @@ export default function LoginForm() {
 
           <Button type="button" fullWidth variant="secondary" icon={LogIn} onClick={handleGoogle}>Masuk dengan Google</Button>
 
-          <div className="relative">
+          <div className="relative pt-1">
             <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-neutral-200 dark:border-neutral-700" />
+              <div className="w-full border-t border-white/[0.08]" />
             </div>
             <div className="relative flex justify-center text-xs">
-              <span className="bg-white dark:bg-neutral-900 px-2 text-neutral-400 dark:text-neutral-500">atau</span>
+              <span className="bg-[#13161B] px-2 text-[#8e9192] font-mono text-[11px]">belum punya akun?</span>
             </div>
           </div>
 
-          <Link to="/register" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-xl border-2 border-neutral-300 dark:border-neutral-600 text-sm font-medium text-neutral-700 dark:text-neutral-300 hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-all duration-200">
+          <Link to="/register" className="flex items-center justify-center gap-2 w-full px-4 py-2.5 rounded-lg border border-white/[0.12] text-sm font-medium text-white hover:bg-white/[0.05] transition-all duration-200">
             <span>Buat akun baru</span>
             <ArrowRight size={14} />
           </Link>
         </Card>
 
-        <p className="text-center text-xs text-neutral-400 dark:text-neutral-500 mt-6">
-          <Link to="/" className="hover:text-neutral-700 dark:hover:text-neutral-300 transition-colors duration-150">Kembali ke beranda</Link>
+        <p className="text-center text-xs text-neutral-400 dark:text-[#8e9192] mt-6">
+          <Link to="/" className="hover:text-white transition-colors duration-150">Kembali ke beranda</Link>
         </p>
       </div>
     </div>

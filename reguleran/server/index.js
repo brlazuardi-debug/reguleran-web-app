@@ -58,7 +58,12 @@ app.use('/api/*', rateLimiter(120, 60000))
 
 app.get('/api/health', (c) => c.json({ status: 'ok' }))
 
-function toSnake(str) { return str.replace(/[A-Z]/g, l => '_' + l.toLowerCase()) }
+function toSnake(str) {
+  return str
+    .replace(/-/g, '_')
+    .replace(/([a-z])([A-Z])/g, '$1_$2')
+    .toLowerCase()
+}
 function toCamel(str) { return str.replace(/_([a-z])/g, (_, l) => l.toUpperCase()) }
 
 function mapKeys(obj, fn) {
@@ -69,7 +74,7 @@ function mapKeys(obj, fn) {
   return obj
 }
 
-const PUBLIC_TABLES = new Set(['publicSongs'])
+const PUBLIC_TABLES = new Set(['publicSongs', 'public_songs'])
 
 app.use('/api/*', async (c, next) => {
   if (c.req.method === 'OPTIONS') return next()
@@ -85,56 +90,156 @@ app.use('/api/*', async (c, next) => {
   }
 })
 
+const JSONB_COLUMNS = new Set([
+  'sections',
+  'location',
+  'sound_needs',
+  'instrument_needs',
+  'budget_items',
+  'photo_urls',
+  'genres',
+  'social_links',
+  'testimonials',
+  'mics',
+])
+
+function sanitizeForDb(data) {
+  const result = {}
+  for (const [key, value] of Object.entries(data)) {
+    if (value === undefined) continue
+    if (JSONB_COLUMNS.has(key)) {
+      result[key] = sql.json(value ?? (Array.isArray(value) ? [] : {}))
+    } else {
+      result[key] = value
+    }
+  }
+  return result
+}
+
 app.get('/api/:collection', async (c) => {
-  const { collection } = c.req.param()
-  const userId = c.get('userId')
-  const table = toSnake(collection)
-  const rows = PUBLIC_TABLES.has(collection)
-    ? await sql`SELECT * FROM ${sql(table)} ORDER BY created_at DESC`
-    : await sql`SELECT * FROM ${sql(table)} WHERE user_id = ${userId} ORDER BY created_at DESC`
-  return c.json(rows.map(r => mapKeys(r, toCamel)))
+  try {
+    const { collection } = c.req.param()
+    const userId = c.get('userId')
+    const table = toSnake(collection)
+
+    if (table === 'users') {
+      const rows = await sql`SELECT * FROM users WHERE id = ${userId}`
+      return c.json(rows.map(r => mapKeys(r, toCamel)))
+    }
+
+    const rows = PUBLIC_TABLES.has(collection) || PUBLIC_TABLES.has(table)
+      ? await sql`SELECT * FROM ${sql(table)} ORDER BY created_at DESC`
+      : await sql`SELECT * FROM ${sql(table)} WHERE user_id = ${userId} ORDER BY created_at DESC`
+    return c.json(rows.map(r => mapKeys(r, toCamel)))
+  } catch (err) {
+    console.error(`[GET /api/${c.req.param('collection')}] Error:`, err.message)
+    return c.json({ error: err.message }, 500)
+  }
 })
 
 app.get('/api/:collection/:id', async (c) => {
-  const { collection, id } = c.req.param()
-  const userId = c.get('userId')
-  const table = toSnake(collection)
-  const rows = PUBLIC_TABLES.has(collection)
-    ? await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`
-    : await sql`SELECT * FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
-  return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  try {
+    const { collection, id } = c.req.param()
+    const userId = c.get('userId')
+    const table = toSnake(collection)
+
+    if (table === 'users') {
+      const rows = await sql`SELECT * FROM users WHERE id = ${id}`
+      return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+    }
+
+    const rows = PUBLIC_TABLES.has(collection) || PUBLIC_TABLES.has(table)
+      ? await sql`SELECT * FROM ${sql(table)} WHERE id = ${id}`
+      : await sql`SELECT * FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
+    return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  } catch (err) {
+    console.error(`[GET /api/${c.req.param('collection')}/${c.req.param('id')}] Error:`, err.message)
+    return c.json({ error: err.message }, 500)
+  }
 })
 
 app.post('/api/:collection', async (c) => {
-  const { collection } = c.req.param()
-  const userId = c.get('userId')
-  const body = mapKeys(await c.req.json(), toSnake)
-  const data = { ...body, user_id: userId }
-  const keys = Object.keys(data)
-  const rows = await sql`
-    INSERT INTO ${sql(toSnake(collection))} ${sql(data)}
-    ON CONFLICT (id) DO UPDATE SET ${sql(data, ...keys)}
-    RETURNING *
-  `
-  return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  try {
+    const { collection } = c.req.param()
+    const userId = c.get('userId')
+    const rawBody = await c.req.json()
+    const body = mapKeys(rawBody, toSnake)
+    const table = toSnake(collection)
+
+    if (table === 'users') {
+      const data = sanitizeForDb({ ...body, id: body.id || userId })
+      const keys = Object.keys(data)
+      const rows = await sql`
+        INSERT INTO users ${sql(data)}
+        ON CONFLICT (id) DO UPDATE SET ${sql(data, ...keys)}
+        RETURNING *
+      `
+      return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+    }
+
+    const cleanData = sanitizeForDb({ ...body, user_id: userId })
+    const keys = Object.keys(cleanData)
+
+    let rows
+    if (cleanData.id) {
+      rows = await sql`
+        INSERT INTO ${sql(table)} ${sql(cleanData)}
+        ON CONFLICT (id) DO UPDATE SET ${sql(cleanData, ...keys)}
+        RETURNING *
+      `
+    } else {
+      rows = await sql`
+        INSERT INTO ${sql(table)} ${sql(cleanData)}
+        RETURNING *
+      `
+    }
+    return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  } catch (err) {
+    console.error(`[POST /api/${c.req.param('collection')}] Error:`, err.message)
+    return c.json({ error: err.message }, 500)
+  }
 })
 
 app.put('/api/:collection/:id', async (c) => {
-  const { collection, id } = c.req.param()
-  const userId = c.get('userId')
-  const body = mapKeys(await c.req.json(), toSnake)
-  const keys = Object.keys(body)
-  const table = toSnake(collection)
-  const rows = await sql`UPDATE ${sql(table)} SET ${sql(body, ...keys)} WHERE id = ${id} AND user_id = ${userId} RETURNING *`
-  return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  try {
+    const { collection, id } = c.req.param()
+    const userId = c.get('userId')
+    const rawBody = await c.req.json()
+    const body = mapKeys(rawBody, toSnake)
+    const table = toSnake(collection)
+    const cleanData = sanitizeForDb(body)
+    const keys = Object.keys(cleanData)
+
+    if (table === 'users') {
+      const rows = await sql`UPDATE users SET ${sql(cleanData, ...keys)} WHERE id = ${id} RETURNING *`
+      return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+    }
+
+    const rows = await sql`UPDATE ${sql(table)} SET ${sql(cleanData, ...keys)} WHERE id = ${id} AND user_id = ${userId} RETURNING *`
+    return c.json(rows.length ? mapKeys(rows[0], toCamel) : null)
+  } catch (err) {
+    console.error(`[PUT /api/${c.req.param('collection')}/${c.req.param('id')}] Error:`, err.message)
+    return c.json({ error: err.message }, 500)
+  }
 })
 
 app.delete('/api/:collection/:id', async (c) => {
-  const { collection, id } = c.req.param()
-  const userId = c.get('userId')
-  const table = toSnake(collection)
-  await sql`DELETE FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
-  return c.json({ success: true })
+  try {
+    const { collection, id } = c.req.param()
+    const userId = c.get('userId')
+    const table = toSnake(collection)
+
+    if (table === 'users') {
+      await sql`DELETE FROM users WHERE id = ${id}`
+      return c.json({ success: true })
+    }
+
+    await sql`DELETE FROM ${sql(table)} WHERE id = ${id} AND user_id = ${userId}`
+    return c.json({ success: true })
+  } catch (err) {
+    console.error(`[DELETE /api/${c.req.param('collection')}/${c.req.param('id')}] Error:`, err.message)
+    return c.json({ error: err.message }, 500)
+  }
 })
 
 app.delete('/api/audio/:publicId', async (c) => {

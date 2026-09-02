@@ -17,36 +17,53 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
   const [uploading, setUploading] = useState(false)
   const [uploadProgress, setUploadProgress] = useState(0)
   const [uploadError, setUploadError] = useState('')
-  const uploadAbortRef = useRef(false)
   const playerRef = useRef(null)
   const pitchShiftRef = useRef(null)
-  const animRef = useRef(null)
+  const timerRef = useRef(null)
+  const startTimeRef = useRef(0)
+  const pauseOffsetRef = useRef(0)
+
   const cleanup = useCallback(() => {
+    if (timerRef.current) clearInterval(timerRef.current)
     if (playerRef.current) {
-      playerRef.current.stop()
-      playerRef.current.dispose()
+      try {
+        playerRef.current.stop()
+        playerRef.current.dispose()
+      } catch { /* ignore */ }
       playerRef.current = null
     }
     if (pitchShiftRef.current) {
-      pitchShiftRef.current.dispose()
+      try {
+        pitchShiftRef.current.dispose()
+      } catch { /* ignore */ }
       pitchShiftRef.current = null
     }
-    if (animRef.current) cancelAnimationFrame(animRef.current)
-    setIsLoaded(false)
     setIsPlaying(false)
-    setCurrentTime(0)
-    setDuration(0)
   }, [])
 
   useEffect(() => {
     return () => cleanup()
   }, [cleanup])
 
+  const setupAudio = useCallback((audioBuffer) => {
+    cleanup()
+    const shift = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).toDestination()
+    const player = new Tone.Player(audioBuffer).connect(shift)
+    player.onstop = () => {
+      if (timerRef.current) clearInterval(timerRef.current)
+      setIsPlaying(false)
+      setCurrentTime(0)
+      pauseOffsetRef.current = 0
+    }
+    playerRef.current = player
+    pitchShiftRef.current = shift
+    setDuration(audioBuffer.duration)
+    setIsLoaded(true)
+  }, [cleanup])
+
   const handleFile = async (e) => {
     const file = e.target.files?.[0]
-
     if (e.target) e.target.value = ''
-
     if (!file) return
 
     if (!songId) {
@@ -57,34 +74,23 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
     setUploading(true)
     setUploadProgress(0)
     setUploadError('')
-    uploadAbortRef.current = false
 
     try {
+      const arrayBuffer = await file.arrayBuffer()
+      await Tone.start()
+      const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer)
+      setupAudio(audioBuffer)
+
       const result = await uploadAudio(songId, file, (pct) => {
         setUploadProgress(pct)
       })
 
-      if (uploadAbortRef.current) return
-
       setAudioUrl(result.url)
       setAudioFileName(result.fileName)
       await updateSong(songId, { audioUrl: result.url, audioFileName: result.fileName })
-
-      const arrayBuffer = await file.arrayBuffer()
-      const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer)
-      cleanup()
-      pitchShiftRef.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).toDestination()
-      playerRef.current = new Tone.Player(audioBuffer).connect(pitchShiftRef.current)
-      playerRef.current.onstop = () => {
-        setIsPlaying(false)
-        setCurrentTime(0)
-        if (animRef.current) cancelAnimationFrame(animRef.current)
-      }
-      setDuration(audioBuffer.duration)
-      setIsLoaded(true)
     } catch (err) {
-      console.error('Audio upload failed:', err)
-      setUploadError('Gagal upload audio: ' + err.message)
+      console.error('Audio setup failed:', err)
+      setUploadError('Gagal memproses audio: ' + err.message)
     } finally {
       setUploading(false)
       setUploadProgress(0)
@@ -97,61 +103,65 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
       if (!audioUrl) return
       try {
         const response = await fetch(audioUrl)
+        if (!response.ok) return
         const arrayBuffer = await response.arrayBuffer()
+        await Tone.start()
         const audioBuffer = await Tone.context.decodeAudioData(arrayBuffer)
         if (!cancelled) {
-          cleanup()
-          pitchShiftRef.current = new Tone.PitchShift({ pitch: 0, windowSize: 0.1 }).toDestination()
-          playerRef.current = new Tone.Player(audioBuffer).connect(pitchShiftRef.current)
-          playerRef.current.onstop = () => {
-            setIsPlaying(false)
-            setCurrentTime(0)
-            if (animRef.current) cancelAnimationFrame(animRef.current)
-          }
-          setDuration(audioBuffer.duration)
-          setIsLoaded(true)
+          setupAudio(audioBuffer)
         }
-      } catch {
-        // silent
+      } catch (err) {
+        console.warn('Could not load audio from URL:', err)
       }
     }
     loadFromUrl()
     return () => { cancelled = true }
-  }, [audioUrl, cleanup])
+  }, [audioUrl, setupAudio])
 
   const togglePlay = async () => {
     if (!playerRef.current) return
 
-    if (isPlaying) {
-      playerRef.current.stop()
-      setIsPlaying(false)
-      if (animRef.current) cancelAnimationFrame(animRef.current)
-    } else {
+    try {
       await Tone.start()
-      playerRef.current.start()
-      setIsPlaying(true)
+      if (isPlaying) {
+        playerRef.current.stop()
+        pauseOffsetRef.current = currentTime
+        if (timerRef.current) clearInterval(timerRef.current)
+        setIsPlaying(false)
+      } else {
+        const offset = pauseOffsetRef.current
+        playerRef.current.start(0, offset)
+        startTimeRef.current = Date.now() - (offset * 1000)
+        setIsPlaying(true)
 
-      const updateTime = () => {
-        if (playerRef.current && playerRef.current.state === 'started') {
-          setCurrentTime(Date.now() - startTime)
-          animRef.current = requestAnimationFrame(updateTime)
-        }
+        if (timerRef.current) clearInterval(timerRef.current)
+        timerRef.current = setInterval(() => {
+          const elapsed = (Date.now() - startTimeRef.current) / 1000
+          if (elapsed >= duration) {
+            setCurrentTime(duration)
+            clearInterval(timerRef.current)
+            setIsPlaying(false)
+            pauseOffsetRef.current = 0
+          } else {
+            setCurrentTime(elapsed)
+          }
+        }, 100)
       }
-      const startTime = Date.now() - currentTime
-      animRef.current = requestAnimationFrame(updateTime)
+    } catch (err) {
+      console.error('Playback error:', err)
     }
   }
 
   const changePitch = (val) => {
-    const v = parseInt(val)
+    const v = parseInt(val, 10)
     if (pitchShiftRef.current) {
       pitchShiftRef.current.pitch = v
     }
     setPitch(v)
   }
 
-  const formatTime = (ms) => {
-    const totalSec = Math.floor(ms / 1000)
+  const formatTime = (sec) => {
+    const totalSec = Math.floor(sec || 0)
     const m = Math.floor(totalSec / 60)
     const s = totalSec % 60
     return `${m}:${s.toString().padStart(2, '0')}`
@@ -160,9 +170,9 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <h4 className="text-sm font-medium text-stone-700 dark:text-stone-300">Audio</h4>
+        <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300">Audio Backing Track</h4>
         {audioFileName && (
-          <span className="text-xs text-stone-400 dark:text-stone-500 truncate max-w-[180px]">
+          <span className="text-xs text-neutral-500 dark:text-neutral-400 truncate max-w-[180px]">
             <Cloud size={12} className="inline mr-1" />
             {audioFileName}
           </span>
@@ -170,17 +180,17 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
       </div>
 
       <div>
-        <label className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-dashed border-stone-300 dark:border-stone-700 hover:border-primary-500 dark:hover:border-primary-500 cursor-pointer transition-colors text-sm">
+        <label className="flex items-center gap-2 px-3 py-2 rounded-lg border-2 border-dashed border-neutral-300 dark:border-neutral-700 hover:border-neutral-500 dark:hover:border-neutral-400 cursor-pointer transition-colors text-sm bg-white dark:bg-[#13161B]">
           {uploading ? (
-            <span className="flex items-center gap-2 text-primary-600 dark:text-primary-400">
+            <span className="flex items-center gap-2 text-neutral-700 dark:text-neutral-300">
               <Loader size={16} className="animate-spin" />
               Upload {Math.round(uploadProgress)}%
             </span>
           ) : (
             <>
-              <Upload size={16} className="text-stone-400 dark:text-stone-500" />
-              <span className="text-stone-500 dark:text-stone-400">
-                {audioFileName ? 'Ganti audio...' : 'Upload audio (MP3, WAV, OGG)'}
+              <Upload size={16} className="text-neutral-400 dark:text-neutral-500" />
+              <span className="text-neutral-600 dark:text-neutral-400">
+                {audioFileName ? 'Ganti audio' : 'Upload audio (MP3, WAV, OGG)'}
               </span>
             </>
           )}
@@ -195,8 +205,8 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
       </div>
 
       {isLoaded && (
-        <>
-          <div className="flex items-center gap-3">
+        <div className="p-3.5 bg-neutral-100/70 dark:bg-white/[0.04] border border-neutral-200 dark:border-white/[0.08] rounded-xl space-y-3">
+          <div className="flex items-center justify-between">
             <Button
               variant="primary"
               size="sm"
@@ -205,36 +215,41 @@ export default function PitchShifter({ songId, audioUrl: initialUrl, audioFileNa
             >
               {isPlaying ? 'Pause' : 'Play'}
             </Button>
-            <span className="text-sm text-stone-500 dark:text-stone-400 font-mono">
-              {formatTime(currentTime)} / {formatTime(duration * 1000)}
+            <span className="text-xs text-neutral-600 dark:text-neutral-400 font-mono">
+              {formatTime(currentTime)} / {formatTime(duration)}
             </span>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-stone-700 dark:text-stone-300 mb-1">
-              Pitch: {pitch > 0 ? '+' : ''}{pitch} semitone
-            </label>
+            <div className="flex items-center justify-between mb-1 text-xs">
+              <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                Pitch Shift: {pitch > 0 ? `+${pitch}` : pitch} semitones
+              </span>
+              <button
+                type="button"
+                onClick={() => changePitch(0)}
+                className="text-[11px] text-neutral-500 dark:text-neutral-400 hover:underline"
+              >
+                Reset (0)
+              </button>
+            </div>
             <input
               type="range"
-              min="-5"
-              max="5"
+              min="-6"
+              max="6"
               value={pitch}
               onChange={(e) => changePitch(e.target.value)}
-              className="w-full accent-primary-600 dark:accent-primary-400"
+              className="w-full accent-neutral-900 dark:accent-white cursor-pointer"
             />
-            <div className="flex justify-between text-xs text-stone-400 dark:text-stone-500 mt-0.5">
-              <span>-5</span>
+            <div className="flex justify-between text-[10px] text-neutral-500 font-mono mt-0.5">
+              <span>-6</span>
+              <span>-3</span>
               <span>0</span>
-              <span>+5</span>
+              <span>+3</span>
+              <span>+6</span>
             </div>
           </div>
-        </>
-      )}
-
-      {!isLoaded && !audioUrl && !uploading && !uploadError && (
-        <p className="text-xs text-stone-400 dark:text-stone-500">
-          Audio tersimpan permanent di cloud setelah diupload
-        </p>
+        </div>
       )}
 
       {uploadError && (

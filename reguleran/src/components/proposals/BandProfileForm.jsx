@@ -50,12 +50,12 @@ export default function BandProfileForm({ initial, onSubmit, onCancel, submittin
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Nama Band" value={bandName} onChange={(e) => setBandName(e.target.value)} required placeholder="Mis: Reguleran Band" />
-        <Input label="Tagline" value={tagline} onChange={(e) => setTagline(e.target.value)} placeholder="The Worship Band" />
-        <Input label="Jumlah Member" type="number" value={memberCount} onChange={(e) => setMemberCount(e.target.value)} placeholder="5" min={1} />
+        <Input label="Nama Band / Artis" value={bandName} onChange={(e) => setBandName(e.target.value)} required />
+        <Input label="Tagline / Slogan" value={tagline} onChange={(e) => setTagline(e.target.value)} />
+        <Input label="Jumlah Personil" type="number" value={memberCount} onChange={(e) => setMemberCount(e.target.value)} min={1} />
       </div>
 
-      <Textarea label="Deskripsi" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} placeholder="Cerita singkat tentang band..." />
+      <Textarea label="Deskripsi / Bio Band" value={description} onChange={(e) => setDescription(e.target.value)} rows={3} />
 
       <div>
         <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1.5">Genre</label>
@@ -65,7 +65,7 @@ export default function BandProfileForm({ initial, onSubmit, onCancel, submittin
             value={genreInput}
             onChange={(e) => setGenreInput(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addGenre() } }}
-            placeholder="Ketik genre lalu Enter..."
+            placeholder="Tambah genre musik..."
           />
           <Button type="button" variant="secondary" size="sm" onClick={addGenre}>Tambah</Button>
         </div>
@@ -84,20 +84,20 @@ export default function BandProfileForm({ initial, onSubmit, onCancel, submittin
       </div>
 
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
-        <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Kontak</h4>
+        <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Kontak Booking</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input label="Nama Kontak" value={contactName} onChange={(e) => setContactName(e.target.value)} placeholder="Bang Rudi" />
-          <Input label="Telepon" type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} placeholder="0812-xxxx-xxxx" />
-          <Input label="Email" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder="band@email.com" />
+          <Input label="Nama Kontak (PIC)" value={contactName} onChange={(e) => setContactName(e.target.value)} />
+          <Input label="Telepon / WhatsApp" type="tel" value={contactPhone} onChange={(e) => setContactPhone(e.target.value)} />
+          <Input label="Email Booking" type="email" value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} />
         </div>
       </div>
 
       <div className="border-t border-neutral-200 dark:border-neutral-800 pt-4">
         <h4 className="text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-3">Media Sosial</h4>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <Input label="Instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@reguleran" />
-          <Input label="YouTube" value={youtube} onChange={(e) => setYoutube(e.target.value)} placeholder="youtube.com/@reguleran" />
-          <Input label="TikTok" value={tiktok} onChange={(e) => setTiktok(e.target.value)} placeholder="@reguleran" />
+          <Input label="Instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+          <Input label="YouTube" value={youtube} onChange={(e) => setYoutube(e.target.value)} />
+          <Input label="TikTok" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
         </div>
       </div>
 

@@ -1,156 +1,114 @@
-# Reguleran
+# Reguleran — Live Band OS
 
-Platform manajemen musik untuk tim ibadah — kelola lagu, setlist, sesi mingguan, jadwal kalender, proposal manggung, rider teknis, dan RAB. Web + Mobile.
+Platform manajemen live musik modern untuk musisi, band, dan session player — kelola katalog lagu, setlist cerdas, sesi mingguan, jadwal manggung, technical rider & RAB, proposal booking ber-PDF, audio pitch shifter, dan sinkronisasi instrumen secara real-time. Web + Mobile.
 
-> **Preview Build:** Platform Reguleran sedang dalam tahap pengembangan fitur aktif secara berkala. Live: https://portfolio-reguleran.vercel.app
+> **UI Aesthetic:** Dual Mode — Monochrome Studio (Linear-style obsidian `#08090A` / charcoal `#13161B`) & Clean Daylight Light Mode.  
+> **Dwibahasa:** Dukungan penuh Bahasa Indonesia (ID) & English (EN).
 
-## Recent fixes (Aug 2026)
-- **Login/Register fixed for Clerk v6 signal API** (`@clerk/react` 6.12.6): `signIn.create()` returns `{ result, error }` (not a `SignInResource`); read `signIn.status` / `signIn.createdSessionId` off the `signIn` resource, and activate the session via `clerk.setActive({ session })` from `useClerk()`. Login now redirects to `/app` correctly. See `AGENTS.md` → Gotchas.
-- **Clerk dev instance**: `auth_password.device_trust` disabled so password login works on new devices (otherwise FAPI returns `needs_client_trust`).
-- **Server couldn't start** — stray `})` at `server/index.js:139` orphaned every route after it (audio delete, both PDF endpoints, `serve()`). Removed.
-- **Mobile data layer dead** — all screens called raw `fetch('/songs')` with no base URL. `services/api.ts` now prefixes `EXPO_PUBLIC_API_URL`.
-- **Mobile rider shape** — aligned to server/web (`soundNeeds`, `instrumentNeeds` role-chips, `budgetItems`).
-- **Railway deploy** — root `package.json` now uses npm workspaces (`reguleran/server`) + `engines.node >=20`; fixes `ERR_MODULE_NOT_FOUND @hono/node-server` on fresh installs.
-- **Backend live on Railway** — `reguleran-web-app-production.up.railway.app` online (health 200, auth 401, CORS OK). Domain `reguleran-api.up.railway.app` is NOT used (reserved but 404).
-- **CORS fixed** — Railway `CORS_ORIGINS` must include `https://reguleran-web-app-brlazuardi.vercel.app` or the web→API calls are rejected in browser.
-- **Vercel live** — `reguleran-web-app` production deploy READY (was Error: project Root Directory was `.` instead of `reguleran`).
-- **Deps pruned** — removed unused `react-leaflet` (web) and 4 unused mobile deps; fixed `expo-av` `~15.2.3` → `15.1.7` (15.2.x never existed in registry — broke fresh `npm install`).
+---
 
-## Portfolio
-Showcase statis (screenshot app asli + fitur + tech stack) di `portfolio/`, deploy ke **https://portfolio-reguleran.vercel.app**. Screenshot di-capture via Playwright dengan impersonation ticket Clerk (lihat `AGENTS.md` → Portfolio untuk workflow lengkap).
+## ⚡ Akses Cepat Demo & Testing
 
-## Local Setup
-Lihat `reguleran/SETUP.md` untuk panduan lengkap menjalankan web + server + mobile secara lokal (env files, NeonDB migration, install, first-run troubleshooting).
+Untuk pengujian tanpa verifikasi email / OAuth:
+- **URL Login:** `http://localhost:5173/login` atau via production web
+- **Tombol Cepat:** Klik tombol **"1-Klik Masuk sebagai Demo Admin"**
+- **Manual Akun Demo:**
+  - **Email:** `demo@reguleran.app`
+  - **Password:** `Reguleran2026!`
 
-## Tech Stack
+---
 
-| Layer | Web | Mobile |
-|-------|-----|--------|
+## 🚀 Fitur Utama
+
+- **Katalog Lagu & Chord Sheet:** Chord & lirik realtime, transpose instan, section management (`[INTRO]`, `[VERSE]`, `[CHORUS]`), dan catatan spesifik per role instrumen (Gitar, Bass, Keys, Drum, Vokal).
+- **Setlist Cerdas & Live Stage Player:** Urutkan lagu untuk manggung, transpose per lagu, live autoscroll, dan mode kontras tinggi panggung.
+- **Sesi & Kalender Manggung:** Jadwal latihan dan gig berkala, lokasi venue, maps picker, status konfirmasi personil, dan ekspor ICS kalender.
+- **Technical Rider & RAB:** Format kebutuhan sound system (channel list matrix), kebutuhan instrumen, dan rincian anggaran biaya manggung per sesi.
+- **Booking Proposal & PDF:** Buat dokumen penawaran manggung ke venue/cafe lengkap dengan profile band, rate card, testimoni, dan export PDF server-side.
+- **Audio Pitch Shifter Workstation (Web):** Pengubah nada audio backing track berbasis Web Audio API (Tone.js) dengan slider pitch -6 s/d +6 semitones dan cloud storage Cloudinary.
+- **Band Profile & EPK:** Profil band, susunan personil, foto/logo band, dan kontak booking.
+- **Public Library:** Berbagi dan temukan chord lagu dari komunitas.
+- **Dual Theme (Light & Dark):** Studio dark obsidian & Daylight light mode dengan kontras tinggi.
+- **Dwibahasa (ID & EN):** Beralih instan antara Bahasa Indonesia dan English di semua menu dan halaman.
+
+---
+
+## 🛠️ Tech Stack
+
+| Layer | Web App | Mobile App |
+|---|---|---|
 | **Frontend** | React 19 + Vite 8 (rolldown) + Tailwind CSS 3 | React Native + Expo SDK 57 + NativeWind |
-| **State** | Zustand 5 | Zustand 5 |
-| **Auth** | Clerk (`@clerk/react` v6) — `useSignIn`/`useSignUp` hooks | Clerk (`@clerk/clerk-expo` v2) |
-| **Database** | NeonDB (PostgreSQL) via `postgres.js` | via Hono API (sama) |
-| **API Server** | Hono 4 — `server/index.js` | via Hono API (sama) |
-| **Storage** | Cloudinary (unsigned upload + Admin API delete) | via Hono API (sama) |
-| **Audio** | Tone.js 15 (pitch shifting via Web Audio API) | expo-av (playback only) |
-| **Routing** | React Router 7 | Expo Router (file-based) + Drawer |
-| **PDF** | @react-pdf/renderer (server-side render, lazy-loaded client) | via API |
-| **Icons** | Lucide React | lucide-react-native |
+| **State Management** | Zustand 5 | Zustand 5 |
+| **Internationalization (i18n)** | Custom Translation Engine (ID / EN) | Custom Translation Engine |
+| **Authentication** | Clerk (`@clerk/react` v6) | Clerk (`@clerk/clerk-expo` v2) |
+| **Database** | NeonDB (PostgreSQL) via `postgres.js` | via Hono API |
+| **API Backend** | Hono 4 (Node.js) — `server/index.js` | via Hono API |
+| **Media Storage** | Cloudinary (unsigned upload + Admin API delete) | via Hono API |
+| **Audio Processing**| Tone.js 15 (pitch shifting Web Audio API) | expo-av (playback) |
+| **Routing** | React Router 7 | Expo Router (file-based) |
+| **PDF Generation** | @react-pdf/renderer | via Backend API |
+| **Deployment / Container** | Docker + Docker Compose + Nginx Reverse Proxy | Native APK / AAB |
 
-> **No Supabase.** Auth, database, and realtime were migrated to Clerk + NeonDB + Hono. Do not reintroduce `@supabase/*` or `firebase` (removed from the repo — see `AGENTS.md` → Gotchas).
+---
 
-## Architecture
+## 📁 Struktur Repositori
 
 ```
-reguleran/
-├── server/                 # Hono API (Node.js) — shared backend
-│   └── index.js            # Generic CRUD + Clerk JWT verify + Cloudinary admin + PDF
-├── src/                    # Web App (React 19 + Vite 8)
-│   ├── services/           # db.js (API client), storage.js (Cloudinary), notification.js
-│   ├── stores/             # Zustand (auth, song, setlist, session, role, proposal, ...)
-│   ├── components/         # UI + feature components (auth, proposals, riders, layout, audio)
-│   ├── pages/              # 25+ route pages
-│   ├── hooks/              # useAuth, useActiveRole
-│   ├── utils/              # transpose.js, calendar.js, generateProposalPdf.js (lazy)
-│   ├── types/              # TypeScript type definitions
-│   ├── context/            # ThemeContext
-│   ├── App.jsx             # Routes + ErrorBoundary + ClerkSync
-│   └── main.jsx            # Entry + ClerkProvider
-├── mobile/                 # Mobile App (React Native + Expo SDK 57)
-│   ├── app/                # Expo Router (file-based routing)
-│   │   ├── _layout.tsx     # ClerkProvider + auth guard
-│   │   ├── (auth)/         # login, register
-│   │   └── (app)/          # Drawer nav: Dashboard, Lagu, Setlist, Jadwal, Proposal, Band Profile, Pengaturan
-│   ├── components/         # UI + navigation + feature components
-│   ├── stores/             # Zustand stores
-│   ├── services/           # api.ts, auth.ts, cloudinary.ts, tokenCache.ts
-│   ├── hooks/              # useApi.ts, useActiveRole.ts
-│   ├── utils/              # transpose.ts
-│   └── types/              # TypeScript types
-├── neon-migration.sql      # PostgreSQL schema (NeonDB) — run once before first use
-├── vite.config.js          # Vite + PWA + API proxy (/api → :3001)
-├── railway.json            # Railway deploy config
-├── vercel.json             # Vercel deploy config
-└── package.json            # web app scripts + deps
+REGULERAN/
+├── design.md                  # Master Design System (Monochrome Studio & Dual Mode)
+├── AGENTS.md                  # Instruksi teknis dan checklist AI agent
+├── README.md                  # Dokumentasi umum proyek
+├── Dockerfile.server          # Container backend Hono API
+├── Dockerfile.web             # Container frontend Vite + Nginx
+├── docker-compose.yml         # Konfigurasi deploy multi-container lokal/server
+├── nginx.conf                 # Nginx reverse proxy & SPA router
+├── reguleran/
+│   ├── SETUP.md               # Panduan setup lokal step-by-step
+│   ├── SUMMARY.md             # Status ringkasan modul & database
+│   ├── neon-migration.sql     # Skema PostgreSQL NeonDB
+│   ├── server/                # Hono API Backend (Node.js)
+│   │   └── index.js           # Generic CRUD + JSONB sanitizer + Clerk JWT + PDF render
+│   ├── src/                   # Web App (React 19)
+│   │   ├── components/        # UI primitives, layout, dialogs, media
+│   │   ├── i18n/              # Kamus dan hook dwibahasa ID / EN
+│   │   ├── pages/             # 25+ Route pages
+│   │   ├── stores/            # Zustand stores
+│   │   ├── services/          # db.js (API client), storage.js
+│   │   └── index.css          # Studio tokens, glassmorphism, scrollbars
+│   └── mobile/                # Mobile App (Expo SDK 57 + NativeWind)
 ```
 
-### Data flow (web)
-1. Clerk (`@clerk/react`) holds the session. `ClerkSync` in `App.jsx` syncs `useAuth()`/`useUser()` into the `authStore` (Zustand).
-2. `services/db.js` reads the JWT via `window.Clerk.session.getToken()` and sends `Authorization: Bearer <token>` on every request.
-3. The Hono API (`server/index.js`) verifies the token with `@clerk/backend`'s standalone `verifyToken`, then runs the SQL with `postgres.js`.
-4. Zustand stores call `subscribe()` (10s polling) to keep lists fresh. All writes go through `addItem`/`updateItem`/`deleteItem`.
+---
 
-### Data flow (mobile)
-1. `@clerk/clerk-expo` holds the session; `tokenCache` (SecureStore) persists it.
-2. `hooks/useApi.ts` → `services/api.ts` fetches with `Authorization: Bearer <token>` from `getToken()`.
-3. Same Hono API + NeonDB as the web app.
+## 💻 Cara Menjalankan
 
-## Features
-
-- **Songs** — Chord, lirik, section management, transpose, role-specific notes (drum, gitar, bas, keyboard, vokal)
-- **Setlists** — Drag-reorder songs with transpose per song, sequential player
-- **Sessions** — Recurring weekly schedules, location, setlist linking, ICS export
-- **Band Profile** — Nama, genre, kontak, logo/foto upload (Cloudinary)
-- **Booking Proposals** — Proposal manggung dengan venue, rate, testimonial, PDF generation
-- **Rider + RAB** — Technical rider (sound system, instrument, stage layout) + budget breakdown per sesi
-- **Audio Pitch Shifter** — Tone.js-powered pitch shifting with Cloudinary upload (web only; mobile shows playback-only)
-- **Public Library** — Share songs publicly across users
-- **Dashboard** — Upcoming sessions, quick stats, tools hub
-- **Role Views** — Filter chord display by instrument role
-- **PWA** — Auto service worker, installable, offline-ready via workbox
-
-## Commands
-
-### Web App (from `reguleran/`)
+### Opsi 1: Menjalankan dengan Docker (Rekomendasi)
 ```bash
-npm run dev          # Vite dev server at localhost:5173 (proxies /api → :3001)
-npm run build        # Production build (PWA included)
-npm run preview      # Preview production build
-npm run lint         # ESLint (flat config, ignores server/ + mobile/)
+docker compose up --build
 ```
+Aplikasi web dapat diakses di `http://localhost`, dan backend API di `http://localhost:3001`.
 
-### Server (from `reguleran/server`)
-```bash
-npm run dev          # Hono API at localhost:3001 (reads ../.env via --env-file)
-npm start            # Production start
-```
+### Opsi 2: Menjalankan Secara Lokal (Node.js)
 
-### Mobile App (from `reguleran/mobile/`)
-```bash
-npx expo start                # Expo dev server
-npx expo start --android      # Open directly in Android emulator
-npx tsc --noEmit              # TypeScript check (zero errors required)
-eas build --platform android --profile preview   # APK
-eas build --platform android --profile production # AAB (Play Store)
-```
+1. **Install Dependencies:**
+   ```bash
+   # Root
+   npm install
+   # Web & Server
+   cd reguleran && npm install
+   cd server && npm install
+   ```
 
-## Database
+2. **Jalankan Aplikasi:**
+   ```bash
+   # Jalankan Server (Port 3001)
+   cd reguleran/server && npm run dev
 
-NeonDB (PostgreSQL). Run `neon-migration.sql` (located at `reguleran/neon-migration.sql`) in the NeonDB SQL Editor before first use.
+   # Jalankan Web App (Port 5173)
+   cd reguleran && npm run dev
+   ```
 
-| Table | Description |
-|-------|-------------|
-| `users`, `songs`, `setlists`, `sessions` | Core data |
-| `public_songs` | Shared songs library |
-| `band_profiles` | Band info + logo |
-| `proposals` | Booking proposals |
-| `event_documents` | Rider + RAB per session |
-
-- `users.id` is `TEXT` (Clerk user ID), not UUID.
-- No RLS — auth via Clerk JWT verification in Hono middleware.
-- Indexes on `user_id` columns (and `session_id` / `status` where noted) for performance.
-
-## Production Deploy (step-by-step)
-
-1. **Clerk Dashboard** → switch from Development → Production instance → copy the production publishable + secret keys.
-2. **NeonDB** → create a production project → run `neon-migration.sql` in its SQL Editor.
-3. **Backend (Railway)** → import repo → Root Directory: **repo root** (`/`) → Railway reads `railway.json` (start command `cd reguleran/server && node index.js`) → set env vars (`CORS_ORIGINS`, `CLERK_SECRET_KEY`, `DATABASE_URL`, `CLOUDINARY_*`, `PORT`) → Deploy. Deps diinstal via **npm workspaces** di root. Confirm `GET /api/health` returns `{"status":"ok"}`.
-   - ⚠️ Pastikan Railway memakai Node ≥ 20 (`engines.node` di root `package.json`; Node 18 gagal).
-   - ✅ **Live**: `https://reguleran-web-app-production.up.railway.app` (health 200, auth 401, CORS web + `exp://` OK). Domain `reguleran-api.up.railway.app` yang lain TIDAK dipakai (404 fallback).
-   - **CORS**: Railway `CORS_ORIGINS` **wajib** memuat `https://reguleran-web-app-brlazuardi.vercel.app` (dan `http://localhost:5173` untuk dev). Tanpa itu, web → API ditolak browser (`access-control-allow-origin` hilang). Mobile (`exp://`, `http://192.168.*`) auto-allow oleh server.
-4. **Frontend (Vercel)** → project `reguleran-web-app` → **Root Directory: `reguleran`** (bukan `.`) → set `VITE_*` env vars (`VITE_CLERK_PUBLISHABLE_KEY`, `VITE_API_URL = https://reguleran-web-app-production.up.railway.app/api`, `VITE_CLOUDINARY_*`) → Deploy. Live: `reguleran-web-app-brlazuardi.vercel.app`.
-   - ⚠️ Update `VITE_API_URL` kalau URL Railway berubah: `vercel env rm VITE_API_URL production --yes` lalu `vercel env add VITE_API_URL production`, lalu `vercel --prod`.
-5. **Clerk Dashboard** → add production redirect URLs (Vercel domain `/oauth-callback`, and the Expo scheme for mobile).
-6. **Mobile (EAS)** → `eas build --platform android --profile production` → upload AAB to Play Console. Set `EXPO_PUBLIC_API_URL` to the Railway URL.
-
-See `AGENTS.md` → Production Deploy for the full runbook and env-var reference.
+3. **Build Verifikasi:**
+   ```bash
+   cd reguleran && npm run build
+   ```

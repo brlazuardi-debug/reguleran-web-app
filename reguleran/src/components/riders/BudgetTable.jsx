@@ -95,7 +95,7 @@ export default function BudgetTable({ items = [], onChange }) {
           </select>
         </div>
         <div className="flex-[2]">
-          <Input label="Deskripsi" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} placeholder="Mis: Sewa mobil pickup" />
+          <Input label="Deskripsi" value={newDesc} onChange={(e) => setNewDesc(e.target.value)} />
         </div>
         <div className="w-16">
           <Input label="Qty" type="number" value={newQty} onChange={(e) => setNewQty(Number(e.target.value))} min={1} />

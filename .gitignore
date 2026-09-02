@@ -11,3 +11,7 @@ build/
 skills-lock.json
 .vercel
 .env*
+portfolio/
+*PRD*.md
+PRD*.md
+reguleran/*PRD*.md

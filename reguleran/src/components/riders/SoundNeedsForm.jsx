@@ -14,8 +14,8 @@ export default function SoundNeedsForm({ soundNeeds, onChange }) {
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Jumlah Channel" type="number" value={soundNeeds.channels || ''} onChange={(e) => update('channels', Number(e.target.value))} min={0} placeholder="8" />
-        <Input label="Jumlah Monitor" type="number" value={soundNeeds.monitors || ''} onChange={(e) => update('monitors', Number(e.target.value))} min={0} placeholder="4" />
+        <Input label="Jumlah Channel Mixer" type="number" value={soundNeeds.channels || ''} onChange={(e) => update('channels', Number(e.target.value))} min={0} />
+        <Input label="Jumlah Monitor Panggung" type="number" value={soundNeeds.monitors || ''} onChange={(e) => update('monitors', Number(e.target.value))} min={0} />
       </div>
 
       <div>
@@ -29,7 +29,7 @@ export default function SoundNeedsForm({ soundNeeds, onChange }) {
               className="flex-1 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400"
               value={m.type}
               onChange={(e) => updateMic(i, 'type', e.target.value)}
-              placeholder="SM58 Dynamic"
+              placeholder="Tipe Mic (Vocal/Instrument/DI Box)"
             />
             <input
               className="w-20 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-sm text-neutral-900 dark:text-neutral-100 text-center"
@@ -45,7 +45,7 @@ export default function SoundNeedsForm({ soundNeeds, onChange }) {
         ))}
       </div>
 
-      <Textarea label="Catatan Sound" value={soundNeeds.notes || ''} onChange={(e) => update('notes', e.target.value)} rows={2} placeholder="Kebutuhan khusus sound..." />
+      <Textarea label="Catatan Sound System" value={soundNeeds.notes || ''} onChange={(e) => update('notes', e.target.value)} rows={2} />
     </div>
   )
 }

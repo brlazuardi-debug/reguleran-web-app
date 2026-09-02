@@ -19,14 +19,12 @@ export default function SetlistForm({ initial, onSubmit, onCancel, submitting })
         value={name}
         onChange={(e) => setName(e.target.value)}
         required
-        placeholder="Mis: Setlist Akustik Mingguan"
       />
       <Textarea
-        label="Deskripsi (opsional)"
+        label="Deskripsi / Catatan (opsional)"
         rows={2}
         value={description}
         onChange={(e) => setDescription(e.target.value)}
-        placeholder="Catatan untuk setlist ini"
       />
       <div className="flex gap-3">
         <Button type="submit" loading={submitting}>

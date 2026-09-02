@@ -16,7 +16,7 @@ export default function RoleOnboardingModal() {
   return (
     <Modal open={showOnboarding} onClose={skipOnboarding} title="Pilih Peran Anda" size="sm">
       <p className="text-sm text-neutral-500 dark:text-neutral-400 mb-5">
-        Pilih peran utama kamu di ibadah. Tampilan akan disesuaikan agar kamu bisa fokus pada bagian masing-masing.
+        Pilih peran utama kamu di band/grup. Tampilan chord dan catatan teknis akan disesuaikan secara otomatis.
       </p>
       <div className="space-y-2">
         {ROLE_OPTIONS.map((role) => {

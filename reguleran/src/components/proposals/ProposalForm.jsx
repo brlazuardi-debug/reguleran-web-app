@@ -61,20 +61,20 @@ export default function ProposalForm({ initial, setlists, bandProfile, onSubmit,
       )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Nama Venue" value={venueName} onChange={(e) => setVenueName(e.target.value)} required placeholder="Cafe Senja" />
-        <Input label="Kontak Venue" value={venueContact} onChange={(e) => setVenueContact(e.target.value)} placeholder="0812-xxxx-xxxx" />
+        <Input label="Nama Venue / Klien" value={venueName} onChange={(e) => setVenueName(e.target.value)} required />
+        <Input label="Kontak PIC Venue" value={venueContact} onChange={(e) => setVenueContact(e.target.value)} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <Input label="Tanggal Proposal" type="date" value={proposedDate} onChange={(e) => setProposedDate(e.target.value)} />
-        <Input label="Waktu" type="time" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
+        <Input label="Waktu Tampil" type="time" value={proposedTime} onChange={(e) => setProposedTime(e.target.value)} />
       </div>
 
-      <Textarea label="Format Penampilan" value={performanceFormat} onChange={(e) => setPerformanceFormat(e.target.value)} rows={2} placeholder='Contoh: "2 sesi x 45 menit dengan jeda 15 menit"' />
+      <Textarea label="Format Penampilan" value={performanceFormat} onChange={(e) => setPerformanceFormat(e.target.value)} rows={2} />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <Input label="Rate (Rp)" type="number" value={rateOffered} onChange={(e) => setRateOffered(e.target.value)} placeholder="5000000" min={0} />
-        <Input label="Catatan Rate" value={rateNotes} onChange={(e) => setRateNotes(e.target.value)} placeholder="Termasuk transport & konsumsi" />
+        <Input label="Rate Penawaran (Rp)" type="number" value={rateOffered} onChange={(e) => setRateOffered(e.target.value)} min={0} />
+        <Input label="Catatan Rate" value={rateNotes} onChange={(e) => setRateNotes(e.target.value)} />
       </div>
 
       <Select label="Status" value={status} onChange={(e) => setStatus(e.target.value)} options={STATUS_OPTIONS} />

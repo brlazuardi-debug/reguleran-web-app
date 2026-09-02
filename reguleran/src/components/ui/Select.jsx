@@ -14,7 +14,7 @@ const Select = forwardRef(function Select({
   return (
     <div className="space-y-1.5">
       {label && (
-        <label htmlFor={inputId} className="block text-sm font-medium text-neutral-700 dark:text-neutral-300">
+        <label htmlFor={inputId} className="block text-xs font-mono font-medium text-neutral-700 dark:text-[#c4c7ca] uppercase tracking-wider">
           {label}
         </label>
       )}
@@ -22,15 +22,14 @@ const Select = forwardRef(function Select({
         ref={ref}
         id={inputId}
         className={`
-          w-full rounded-xl border bg-white px-4 py-2.5 text-sm
+          w-full rounded-lg border bg-white px-3.5 py-2 text-sm
           text-neutral-900
           transition-all duration-200
-          focus:outline-none focus:ring-2 focus:ring-neutral-500/30 focus:border-neutral-500
-          dark:bg-neutral-900 dark:text-neutral-100
-          dark:focus:ring-neutral-400/20
+          focus:outline-none focus:ring-1 focus:ring-white/30 focus:border-white/30
+          dark:bg-[#13161B] dark:text-white
           ${error
-            ? 'border-neutral-400 focus:border-neutral-600 focus:ring-neutral-600/30 dark:border-neutral-600'
-            : 'border-neutral-300 dark:border-neutral-700'
+            ? 'border-red-500 focus:border-red-500 focus:ring-red-500/30'
+            : 'border-neutral-300 dark:border-white/[0.08]'
           }
           ${className}
         `}
@@ -46,7 +45,7 @@ const Select = forwardRef(function Select({
         })}
       </select>
       {error && (
-        <p className="text-xs text-neutral-600 dark:text-neutral-400">{error}</p>
+        <p className="text-xs text-red-500 dark:text-red-400 font-mono">{error}</p>
       )}
     </div>
   )

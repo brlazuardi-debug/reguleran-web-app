@@ -32,14 +32,14 @@ export default function BandProfileScreen() {
   }, [profile, editing])
 
   async function fetchProfile() {
-    const data = await execute('/band-profiles')
+    const data = await execute('/bandProfiles')
     if (data) setProfile(data)
   }
 
   async function handleSave() {
     setSaving(true)
-    const data = await execute('/band-profiles', {
-      method: 'PUT',
+    const data = await execute('/bandProfiles', {
+      method: 'POST',
       body: {
         bandName,
         genres: genres.split(',').map((g) => g.trim()).filter(Boolean),
